@@ -1,0 +1,61 @@
+CYBERSECURITY THREAT KNOWLEDGE BASE
+
+=== MALWARE TYPES ===
+Ransomware: Malware that encrypts victim files and demands payment for decryption key. Common examples include WannaCry, REvil, LockBit. Indicators include unusual file encryption activity, ransom notes, and C2 communications.
+
+Trojan: Malware disguised as legitimate software. Trojans create backdoors for attackers. Common indicators include unexpected network connections, new admin accounts, and disabled security tools.
+
+Keylogger: Records keystrokes to steal passwords and sensitive data. Indicators include unusual processes, suspicious registry entries, and unexpected data exfiltration.
+
+Rootkit: Hides malware presence from OS and security tools. Very difficult to detect. Indicators include system call hooking, hidden processes, and modified kernel modules.
+
+Botnet: Network of infected computers controlled by attacker. Used for DDoS attacks, spam, and crypto mining. Indicators include unusual outbound traffic, IRC connections, and high CPU usage.
+
+=== ATTACK TYPES ===
+SQL Injection: Attacker injects malicious SQL code into web forms to access databases. Indicators in logs include unusual SQL syntax, error messages, and unexpected data access patterns.
+
+Cross Site Scripting XSS: Attacker injects malicious scripts into web pages. Indicators include script tags in input fields, unusual redirects, and stolen session cookies.
+
+Phishing: Deceptive emails or websites trick users into revealing credentials. Indicators include suspicious sender domains, urgency language, and links to lookalike websites.
+
+Man in the Middle MITM: Attacker intercepts communications between two parties. Indicators include SSL certificate warnings, unusual ARP traffic, and unexpected DNS changes.
+
+DDoS: Distributed Denial of Service floods target with traffic causing outage. Indicators include massive traffic spikes, multiple source IPs, and service unavailability.
+
+Brute Force: Automated password guessing attack. Indicators in logs include multiple failed login attempts from same IP, sequential username attempts, and account lockouts.
+
+=== LOG ANALYSIS ===
+Failed Login Logs: Multiple failed SSH login attempts like "Failed password for root from 192.168.1.1 port 22" indicate brute force attack. Block the source IP and enable rate limiting.
+
+Web Server Logs: Entries containing "UNION SELECT", "script", "etc/passwd" indicate SQL injection or XSS attempts. Review WAF rules and patch vulnerable endpoints.
+
+Firewall Logs: Large number of connection attempts to port 445 indicate WannaCry ransomware spreading via SMB. Isolate affected systems immediately.
+
+DNS Logs: Unusual DNS queries to random looking domains like "a7f3k2.xyz" may indicate DNS tunneling or C2 communication. Block suspicious domains and investigate infected hosts.
+
+=== INCIDENT RESPONSE ===
+Step 1 Identification: Detect and confirm the security incident using logs, alerts, and threat intelligence.
+Step 2 Containment: Isolate affected systems to prevent spread. Disconnect from network if necessary.
+Step 3 Eradication: Remove malware, close vulnerabilities, and patch affected systems.
+Step 4 Recovery: Restore systems from clean backups and monitor for reinfection.
+Step 5 Lessons Learned: Document the incident and improve defenses to prevent recurrence.
+
+=== COMMON PORTS ===
+Port 22 SSH: Often targeted for brute force attacks.
+Port 80 443 HTTP HTTPS: Web traffic, watch for web attacks.
+Port 445 SMB: Targeted by ransomware like WannaCry.
+Port 3389 RDP: Remote desktop, common target for brute force.
+Port 1433 MSSQL: Database port, watch for SQL injection attempts.
+Port 4444: Common Metasploit default listener port, highly suspicious.
+Port 6667 IRC: Old botnet command and control channel.
+
+=== THREAT ACTORS ===
+APT28 Fancy Bear: Russian state sponsored group targeting government and military. Known for spear phishing and credential theft.
+Lazarus Group: North Korean group known for financial theft and destructive attacks. Behind WannaCry ransomware.
+APT41: Chinese group conducting espionage and financially motivated attacks simultaneously.
+
+=== IOC INDICATORS OF COMPROMISE ===
+IP Indicators: Malicious IPs communicating with your network indicate active compromise. Check threat intel feeds and block immediately.
+Domain Indicators: Suspicious domains used for C2 or phishing. Look for recently registered domains and lookalike domains.
+Hash Indicators: MD5 SHA1 SHA256 hashes of known malicious files. Match against files on your systems.
+Email Indicators: Malicious sender addresses, subject lines, and attachment names used in phishing campaigns.

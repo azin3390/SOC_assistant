@@ -1,0 +1,14 @@
+#!/bin/bash
+# Kill any existing server
+kill -9 $(lsof -ti:5002) 2>/dev/null
+sleep 1
+
+# Start Flask server
+cd /Users/aziniftikhar/soc_assistant/backend
+python3 app.py &
+
+# Wait longer for server + AI model to load
+sleep 12
+
+# Open dashboard
+open -a "Google Chrome" /Users/aziniftikhar/soc_assistant/frontend/index.html

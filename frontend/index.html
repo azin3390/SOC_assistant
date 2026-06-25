@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOC Assistant</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#0a0e1a; color:#e2e8f0; height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+.topbar { background:#0f1629; border-bottom:1px solid #1e2d4a; padding:10px 24px; display:flex; align-items:center; gap:12px; flex-shrink:0; }
+.topbar h1 { font-size:18px; font-weight:700; color:#38bdf8; }
+.topbar .sub { font-size:12px; color:#475569; }
+.status-dot { width:8px; height:8px; border-radius:50%; background:#22c55e; box-shadow:0 0 6px #22c55e; animation:pulse 2s infinite; }
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.nav-tabs { display:flex; gap:4px; margin-left:auto; margin-right:12px; }
+.nav-tab { padding:5px 14px; border-radius:6px; font-size:12px; font-weight:500; cursor:pointer; border:none; background:transparent; color:#475569; transition:all 0.15s; }
+.nav-tab:hover { background:#1e2d4a; color:#e2e8f0; }
+.nav-tab.active { background:#1e3a5f; color:#38bdf8; }
+.page { display:none; flex:1; overflow:hidden; min-height:0; }
+.page.active { display:flex; }
+
+/* ---- CHAT PAGE ---- */
+.chat-section { display:flex; flex-direction:column; flex:1; border-right:1px solid #1e2d4a; overflow:hidden; }
+.chat-messages { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:14px; }
+.chat-messages::-webkit-scrollbar{width:4px}
+.chat-messages::-webkit-scrollbar-thumb{background:#1e2d4a;border-radius:2px}
+.msg { max-width:85%; padding:12px 16px; border-radius:12px; font-size:13px; line-height:1.6; }
+.msg.user { background:#1e3a5f; color:#bfdbfe; align-self:flex-end; border-bottom-right-radius:4px; }
+.msg.assistant { background:#0f1629; border:1px solid #1e2d4a; align-self:flex-start; border-bottom-left-radius:4px; width:90%; }
+.severity-badge { display:inline-block; padding:2px 10px; border-radius:12px; font-size:11px; font-weight:600; margin-bottom:8px; }
+.sev-critical{background:#450a0a;color:#f87171}
+.sev-high{background:#431407;color:#fb923c}
+.sev-medium{background:#451a03;color:#fbbf24}
+.sev-low{background:#052e16;color:#4ade80}
+.chat-input-area { padding:12px 16px; border-top:1px solid #1e2d4a; background:#0f1629; flex-shrink:0; }
+.quick-btns { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+.quick-btn { font-size:11px; padding:4px 10px; background:#1e2d4a; color:#94a3b8; border:none; border-radius:20px; cursor:pointer; }
+.quick-btn:hover{background:#1e3a5f;color:#bfdbfe}
+.input-row { display:flex; gap:8px; }
+.chat-input { flex:1; background:#0a0e1a; border:1px solid #1e2d4a; border-radius:8px; padding:10px 14px; color:#e2e8f0; font-size:13px; outline:none; }
+.chat-input:focus{border-color:#38bdf8}
+.send-btn { background:#38bdf8; color:#0a0e1a; border:none; border-radius:8px; padding:10px 20px; font-weight:700; cursor:pointer; }
+.send-btn:hover{background:#0ea5e9}
+.sidebar { overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px; width:300px; flex-shrink:0; }
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-thumb{background:#1e2d4a;border-radius:2px}
+.sidebar-card { background:#0f1629; border:1px solid #1e2d4a; border-radius:10px; padding:14px; }
+.sidebar-title { font-size:11px; font-weight:600; color:#475569; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px; }
+.indicator-input,.log-textarea { width:100%; background:#0a0e1a; border:1px solid #1e2d4a; border-radius:6px; padding:8px 10px; color:#e2e8f0; font-family:monospace; font-size:12px; outline:none; margin-bottom:8px; }
+.indicator-input:focus,.log-textarea:focus{border-color:#38bdf8}
+.check-btn { width:100%; background:#1e3a5f; color:#38bdf8; border:1px solid #1e4a7f; border-radius:6px; padding:8px; font-size:12px; font-weight:600; cursor:pointer; margin-bottom:6px; }
+.check-btn:hover{background:#1e4a7f}
+.result-box { margin-top:10px; padding:10px; border-radius:6px; font-size:12px; display:none; }
+.result-box.malicious{background:#1c0a0a;border:1px solid #7f1d1d}
+.result-box.suspicious{background:#1c1208;border:1px solid #78350f}
+.result-box.clean{background:#081c0e;border:1px solid #14532d}
+.result-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+.result-row:last-child{border:none}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat-box{background:#0a0e1a;border-radius:6px;padding:10px;text-align:center}
+.stat-num{font-size:22px;font-weight:700}
+.stat-label{font-size:10px;color:#475569;margin-top:2px}
+.rec-item{font-size:12px;color:#94a3b8;padding:4px 0;border-bottom:1px solid #1e2d4a;line-height:1.5}
+.rec-item:last-child{border:none}
+.thinking{display:none;align-items:center;gap:8px;color:#475569;font-size:13px;padding:4px 20px 8px;flex-shrink:0}
+.dot-pulse{display:flex;gap:4px}
+.dot-pulse span{width:6px;height:6px;border-radius:50%;background:#38bdf8;animation:dotpulse 1.2s infinite}
+.dot-pulse span:nth-child(2){animation-delay:0.2s}
+.dot-pulse span:nth-child(3){animation-delay:0.4s}
+@keyframes dotpulse{0%,100%{opacity:0.3}50%{opacity:1}}
+
+/* ---- LOG ANALYZER PAGE ---- */
+.log-page { flex:1; display:flex; gap:0; overflow:hidden; }
+.log-input-panel { width:380px; flex-shrink:0; border-right:1px solid #1e2d4a; padding:20px; display:flex; flex-direction:column; gap:12px; overflow-y:auto; }
+.log-results-panel { flex:1; padding:20px; overflow-y:auto; }
+.log-results-panel::-webkit-scrollbar{width:4px}
+.log-results-panel::-webkit-scrollbar-thumb{background:#1e2d4a;border-radius:2px}
+.log-textarea { height:280px; resize:vertical; }
+.panel-title { font-size:14px; font-weight:600; color:#e2e8f0; margin-bottom:4px; }
+.panel-sub { font-size:12px; color:#475569; margin-bottom:8px; }
+.finding-card { background:#0f1629; border:1px solid #1e2d4a; border-radius:8px; padding:12px; margin-bottom:10px; border-left:3px solid; }
+.finding-card.Critical{border-left-color:#ef4444}
+.finding-card.High{border-left-color:#fb923c}
+.finding-card.Medium{border-left-color:#fbbf24}
+.finding-card.Low{border-left-color:#4ade80}
+.finding-title{font-size:13px;font-weight:600;margin-bottom:4px}
+.finding-detail{font-size:12px;color:#94a3b8;line-height:1.5}
+.finding-rec{font-size:11px;color:#38bdf8;margin-top:6px}
+.ip-tag{display:inline-block;background:#1e2d4a;color:#94a3b8;padding:2px 8px;border-radius:4px;font-family:monospace;font-size:11px;margin:2px}
+.summary-bar{background:#0f1629;border:1px solid #1e2d4a;border-radius:8px;padding:12px;margin-bottom:14px;display:flex;gap:16px;flex-wrap:wrap}
+.summary-stat{text-align:center}
+.summary-stat .num{font-size:20px;font-weight:700}
+.summary-stat .lbl{font-size:10px;color:#475569}
+.report-btn{width:100%;background:linear-gradient(135deg,#1e3a5f,#0f2744);color:#38bdf8;border:1px solid #1e4a7f;border-radius:6px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px}
+.report-btn:hover{background:linear-gradient(135deg,#1e4a7f,#1e3a5f)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span style="font-size:22px">🛡️</span>
+  <div>
+    <h1>SOC Assistant</h1>
+    <div class="sub">AI-powered Security Operations Center</div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('chat')">💬 Chat</button>
+    <button class="nav-tab" onclick="showPage('logs')">📋 Log Analyzer</button>
+  </div>
+  <div class="status-dot"></div>
+</div>
+
+<!-- ==================== CHAT PAGE ==================== -->
+<div class="page active" id="page-chat">
+  <div class="chat-section">
+    <div class="chat-messages" id="chat-messages">
+      <div class="msg assistant">
+        <span class="severity-badge sev-low">● ONLINE</span><br>
+        👋 Hello! I'm your SOC Assistant powered by RAG + Threat Intelligence.<br><br>
+        🔍 <strong>Analyze IPs, domains, and file hashes</strong><br>
+        📋 <strong>Investigate security alerts and logs</strong><br>
+        📚 <strong>Answer cybersecurity questions</strong><br>
+        🚨 <strong>Provide incident response guidance</strong><br><br>
+        Paste a suspicious IP, log entry, or ask me anything!
+      </div>
+    </div>
+    <div id="thinking" class="thinking">
+      <div class="dot-pulse"><span></span><span></span><span></span></div>
+      SOC Assistant is analyzing...
+    </div>
+    <div class="chat-input-area">
+      <div class="quick-btns">
+        <button class="quick-btn" onclick="quickSend('What is ransomware and how do I detect it?')">🦠 Ransomware</button>
+        <button class="quick-btn" onclick="quickSend('Explain SQL injection attack indicators in logs')">💉 SQL Injection</button>
+        <button class="quick-btn" onclick="quickSend('I see multiple failed SSH login attempts from 192.168.1.105, what should I do?')">🔐 Brute Force</button>
+        <button class="quick-btn" onclick="quickSend('What does port 4444 activity mean?')">🚪 Port 4444</button>
+        <button class="quick-btn" onclick="quickSend('How do I respond to a ransomware incident?')">🚨 Incident Response</button>
+      </div>
+      <div class="input-row">
+        <input type="text" class="chat-input" id="chat-input" placeholder="Ask about threats, paste IPs, logs, or hashes..."/>
+        <button class="send-btn" onclick="sendMessage()">Send →</button>
+      </div>
+    </div>
+  </div>
+  <div class="sidebar">
+    <div class="sidebar-card">
+      <div class="sidebar-title">Session Stats</div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="stat-num" id="stat-queries" style="color:#38bdf8">0</div><div class="stat-label">Queries</div></div>
+        <div class="stat-box"><div class="stat-num" id="stat-threats" style="color:#f87171">0</div><div class="stat-label">Threats Found</div></div>
+        <div class="stat-box"><div class="stat-num" id="stat-critical" style="color:#fb923c">0</div><div class="stat-label">Critical</div></div>
+        <div class="stat-box"><div class="stat-num" id="stat-clean" style="color:#4ade80">0</div><div class="stat-label">Clean</div></div>
+      </div>
+    </div>
+    <div class="sidebar-card">
+      <div class="sidebar-title">🔍 Quick IOC Checker</div>
+      <input type="text" class="indicator-input" id="ioc-input" placeholder="IP, domain, or file hash..."/>
+      <button class="check-btn" onclick="checkIOC()">Check Threat Intel →</button>
+      <div class="result-box" id="ioc-result"></div>
+    </div>
+    <div class="sidebar-card">
+      <div class="sidebar-title">📋 Recommendations</div>
+      <div id="recommendations"><div class="rec-item" style="color:#475569">Ask a question to get recommendations...</div></div>
+    </div>
+    <div class="sidebar-card">
+      <div class="sidebar-title">Severity Levels</div>
+      <div style="display:flex;flex-direction:column;gap:6px;font-size:12px">
+        <div style="display:flex;align-items:center;gap:8px"><span class="severity-badge sev-critical" style="font-size:10px;padding:2px 8px">CRITICAL</span>Immediate action</div>
+        <div style="display:flex;align-items:center;gap:8px"><span class="severity-badge sev-high" style="font-size:10px;padding:2px 8px">HIGH</span>Investigate urgently</div>
+        <div style="display:flex;align-items:center;gap:8px"><span class="severity-badge sev-medium" style="font-size:10px;padding:2px 8px">MEDIUM</span>Monitor closely</div>
+        <div style="display:flex;align-items:center;gap:8px"><span class="severity-badge sev-low" style="font-size:10px;padding:2px 8px">LOW</span>Standard monitoring</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== LOG ANALYZER PAGE ==================== -->
+<div class="page" id="page-logs">
+  <div class="log-page">
+    <div class="log-input-panel">
+      <div>
+        <div class="panel-title">📋 Log Analyzer</div>
+        <div class="panel-sub">Paste raw server logs — AI detects attack patterns and builds a timeline</div>
+      </div>
+      <textarea class="log-textarea" id="log-input" placeholder="Paste your logs here...
+
+Example:
+192.168.1.105 - [10:15:01] Failed password for root
+10.0.0.55 - [10:16:01] GET /search?q=UNION SELECT * FROM users
+10.0.0.55 - [10:16:05] GET /page?file=../../etc/passwd
+"></textarea>
+      <button class="check-btn" onclick="analyzeLogs()">🔍 Analyze Logs</button>
+      <button class="check-btn" style="background:#0a1a2e" onclick="loadSampleLogs()">📝 Load Sample Logs</button>
+      <button class="report-btn" id="report-btn" onclick="downloadReport()" style="display:none">📄 Download PDF Report</button>
+      <div style="background:#0a0e1a;border-radius:6px;padding:10px;font-size:11px;color:#475569">
+        <strong style="color:#64748b">Detects:</strong><br>
+        Brute Force · SQL Injection · XSS · Directory Traversal · Command Injection · Port Scans · Ransomware · Data Exfiltration
+      </div>
+    </div>
+    <div class="log-results-panel" id="log-results">
+      <div style="text-align:center;padding:60px 20px;color:#475569">
+        <div style="font-size:40px;margin-bottom:12px">📋</div>
+        <div style="font-size:16px;margin-bottom:6px">Paste logs and click Analyze</div>
+        <div style="font-size:13px">Supports Apache, Nginx, SSH, firewall, and custom log formats</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let stats = {queries:0,threats:0,critical:0,clean:0};
+let lastAnalysisData = null;
+
+// ==================== NAVIGATION ====================
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ==================== CHAT ====================
+async function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  addMessage(msg, 'user');
+  document.getElementById('thinking').style.display = 'flex';
+  try {
+    const resp = await fetch('http://localhost:5002/chat', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({message:msg})
+    });
+    const data = await resp.json();
+    document.getElementById('thinking').style.display = 'none';
+    displayResponse(data);
+    updateStats(data);
+  } catch(e) {
+    document.getElementById('thinking').style.display = 'none';
+    addMessage('❌ Could not reach SOC server. Make sure app.py is running on port 5002.','assistant');
+  }
+}
+
+function quickSend(msg) { document.getElementById('chat-input').value=msg; sendMessage(); }
+
+function addMessage(text,type) {
+  const div = document.createElement('div');
+  div.className=`msg ${type}`;
+  div.innerHTML=text;
+  const c = document.getElementById('chat-messages');
+  c.appendChild(div);
+  c.scrollTop=c.scrollHeight;
+}
+
+function displayResponse(data) {
+  const sevClass={Critical:'sev-critical',High:'sev-high',Medium:'sev-medium',Low:'sev-low'}[data.severity]||'sev-low';
+  let html=`<span class="severity-badge ${sevClass}">● ${data.severity}</span><br>`;
+  if (data.threat_intel&&data.threat_intel.length>0) {
+    html+='<strong>🔍 Threat Intelligence Results:</strong><br>';
+    data.threat_intel.forEach(t=>{
+      const color=t.verdict==='Malicious'?'#f87171':t.verdict==='Suspicious'?'#fbbf24':'#4ade80';
+      html+=`<span style="color:${color}">● ${t.value}: ${t.verdict} (${t.malicious} malicious detections)</span><br>`;
+    });
+    html+='<br>';
+  }
+  if (data.rag_context) html+=`<strong>📚 Knowledge Base:</strong><br><span style="color:#94a3b8;font-size:12px">${data.rag_context.substring(0,400)}...</span>`;
+  addMessage(html,'assistant');
+  if (data.recommendations&&data.recommendations.length)
+    document.getElementById('recommendations').innerHTML=data.recommendations.map(r=>`<div class="rec-item">${r}</div>`).join('');
+}
+
+function updateStats(data) {
+  stats.queries++;
+  if (data.threat_intel&&data.threat_intel.some(t=>t.verdict==='Malicious')) stats.threats++;
+  if (data.severity==='Critical') stats.critical++;
+  if (data.severity==='Low') stats.clean++;
+  document.getElementById('stat-queries').textContent=stats.queries;
+  document.getElementById('stat-threats').textContent=stats.threats;
+  document.getElementById('stat-critical').textContent=stats.critical;
+  document.getElementById('stat-clean').textContent=stats.clean;
+}
+
+async function checkIOC() {
+  const val=document.getElementById('ioc-input').value.trim();
+  if (!val) return;
+  const box=document.getElementById('ioc-result');
+  box.style.display='block'; box.className='result-box'; box.innerHTML='⏳ Checking VirusTotal...';
+  try {
+    const resp=await fetch('http://localhost:5002/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({indicator:val})});
+    const data=await resp.json();
+    const cls=data.verdict==='Malicious'?'malicious':data.verdict==='Suspicious'?'suspicious':'clean';
+    box.className=`result-box ${cls}`;
+    const color=data.verdict==='Malicious'?'#f87171':data.verdict==='Suspicious'?'#fbbf24':'#4ade80';
+    box.innerHTML=`<div style="font-weight:600;color:${color};margin-bottom:6px">${data.verdict} — ${data.value}</div>
+      <div class="result-row"><span style="color:#475569">Malicious</span><span style="color:#f87171">${data.malicious}</span></div>
+      <div class="result-row"><span style="color:#475569">Suspicious</span><span style="color:#fbbf24">${data.suspicious}</span></div>
+      <div class="result-row"><span style="color:#475569">Harmless</span><span style="color:#4ade80">${data.harmless}</span></div>
+      ${data.country?`<div class="result-row"><span style="color:#475569">Country</span><span>${data.country}</span></div>`:''}`;
+  } catch(e) { box.innerHTML='❌ Server not reachable'; }
+}
+
+document.getElementById('chat-input').addEventListener('keypress',e=>{if(e.key==='Enter')sendMessage();});
+
+// ==================== LOG ANALYZER ====================
+function loadSampleLogs() {
+  document.getElementById('log-input').value=`192.168.1.105 - - [23/Jun/2026:10:15:01] "POST /login HTTP/1.1" 401 -
+192.168.1.105 - - [23/Jun/2026:10:15:02] Failed password for root from 192.168.1.105 port 22
+192.168.1.105 - - [23/Jun/2026:10:15:03] Failed password for admin from 192.168.1.105 port 22
+192.168.1.105 - - [23/Jun/2026:10:15:04] Failed password for ubuntu from 192.168.1.105 port 22
+10.0.0.55 - - [23/Jun/2026:10:16:01] "GET /search?q=UNION SELECT * FROM users--  HTTP/1.1" 200 4523
+10.0.0.55 - - [23/Jun/2026:10:16:05] "GET /page?file=../../etc/passwd HTTP/1.1" 200 1024
+10.0.0.55 - - [23/Jun/2026:10:16:08] "GET /page?file=../../etc/shadow HTTP/1.1" 200 512
+192.168.1.200 - - [23/Jun/2026:11:22:01] "GET /admin HTTP/1.1" 404 -
+192.168.1.200 - - [23/Jun/2026:11:22:03] "GET /wp-admin HTTP/1.1" 404 -
+192.168.1.200 - - [23/Jun/2026:11:22:05] "GET /phpmyadmin HTTP/1.1" 404 -
+172.16.0.99 - - [23/Jun/2026:11:45:01] "GET /shell.php?cmd=ls HTTP/1.1" 200 -
+172.16.0.99 - - [23/Jun/2026:11:45:03] "GET /shell.php?cmd=cat /etc/passwd HTTP/1.1" 200 -`;
+}
+
+async function analyzeLogs() {
+  const logs = document.getElementById('log-input').value.trim();
+  if (!logs) return alert('Please paste some logs first!');
+  const resultsPanel = document.getElementById('log-results');
+  resultsPanel.innerHTML = '<div style="text-align:center;padding:40px;color:#475569"><div style="font-size:24px;margin-bottom:8px">⏳</div>Analyzing logs...</div>';
+  try {
+    const resp = await fetch('http://localhost:5002/analyze-logs',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({logs})
+    });
+    const data = await resp.json();
+    lastAnalysisData = data;
+    displayLogResults(data, logs);
+    document.getElementById('report-btn').style.display='block';
+  } catch(e) {
+    resultsPanel.innerHTML='<div style="padding:20px;color:#ef4444">❌ Could not reach server. Make sure app.py is running.</div>';
+  }
+}
+
+function displayLogResults(data, logs) {
+  const sevColors={Critical:'#ef4444',High:'#fb923c',Medium:'#fbbf24',Low:'#4ade80',Clean:'#4ade80'};
+  const sev = data.overall_severity;
+  const sevColor = sevColors[sev]||'#94a3b8';
+
+  let html = `
+    <div style="background:#0f1629;border:1px solid #1e2d4a;border-radius:8px;padding:14px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:16px;font-weight:700;color:${sevColor}">${sev} — ${data.summary}</div>
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <div class="summary-stat"><div class="num" style="color:#38bdf8">${data.log_lines_analyzed}</div><div class="lbl">Lines Analyzed</div></div>
+        <div class="summary-stat"><div class="num" style="color:#ef4444">${data.threat_count}</div><div class="lbl">Threats Found</div></div>
+        <div class="summary-stat"><div class="num" style="color:#94a3b8">${data.ips_found?data.ips_found.length:0}</div><div class="lbl">IPs Found</div></div>
+      </div>
+    </div>`;
+
+  if (data.ips_found&&data.ips_found.length>0) {
+    html+=`<div style="margin-bottom:14px"><div style="font-size:12px;font-weight:600;color:#64748b;margin-bottom:6px">IPs FOUND IN LOGS</div>`;
+    data.ips_found.forEach(ip=>{html+=`<span class="ip-tag">${ip}</span>`;});
+    html+='</div>';
+  }
+
+  if (data.timeline_html) {
+    html+=`<div style="background:#0f1629;border:1px solid #1e2d4a;border-radius:8px;padding:14px;margin-bottom:14px">${data.timeline_html}</div>`;
+  }
+
+  if (data.findings&&data.findings.length>0) {
+    html+=`<div style="font-size:13px;font-weight:600;color:#e2e8f0;margin-bottom:10px">🚨 Attack Findings (${data.findings.length})</div>`;
+    data.findings.forEach(f=>{
+      const fc=sevColors[f.severity]||'#94a3b8';
+      html+=`<div class="finding-card ${f.severity}">
+        <div class="finding-title" style="color:${fc}">${f.attack_type} <span style="font-size:11px;font-weight:400;color:#64748b">(${f.occurrences} occurrence${f.occurrences>1?'s':''})</span></div>
+        <div class="finding-detail">${f.description}</div>
+        <div class="finding-rec">💡 ${f.recommendation}</div>
+      </div>`;
+    });
+  } else {
+    html+=`<div style="background:#081c0e;border:1px solid #14532d;border-radius:8px;padding:16px;text-align:center;color:#4ade80">✅ No attack patterns detected — logs appear clean!</div>`;
+  }
+
+  document.getElementById('log-results').innerHTML=html;
+}
+
+async function downloadReport() {
+  if (!lastAnalysisData) return;
+  const logText = document.getElementById('log-input').value;
+  const reportData = {
+    analyst: "SOC Analyst",
+    overall_severity: lastAnalysisData.overall_severity,
+    summary: lastAnalysisData.summary,
+    threat_intel: [],
+    log_findings: lastAnalysisData.findings||[],
+    recommendations: lastAnalysisData.findings
+      ? lastAnalysisData.findings.map(f=>f.recommendation)
+      : ["No immediate action required"]
+  };
+  try {
+    const resp = await fetch('http://localhost:5002/generate-report',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(reportData)
+    });
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href=url; a.download='threat_report.pdf'; a.click();
+    URL.revokeObjectURL(url);
+  } catch(e) {
+    alert('Could not generate report. Make sure server is running.');
+  }
+}
+</script>
+</body>
+</html>
+<script>
+// Auto-check if server is ready every 2 seconds
+async function waitForServer() {
+  const dot = document.querySelector('.status-dot');
+  dot.style.background = '#f59e0b';
+  dot.style.boxShadow = '0 0 6px #f59e0b';
+  
+  let attempts = 0;
+  const interval = setInterval(async () => {
+    attempts++;
+    try {
+      const r = await fetch('http://localhost:5002/');
+      if (r.ok) {
+        clearInterval(interval);
+        dot.style.background = '#22c55e';
+        dot.style.boxShadow = '0 0 6px #22c55e';
+        console.log('Server connected!');
+      }
+    } catch(e) {
+      console.log(`Waiting for server... attempt ${attempts}`);
+    }
+    if (attempts > 30) clearInterval(interval); // stop after 60 seconds
+  }, 2000);
+}
+waitForServer();
+</script>
