@@ -437,3 +437,17 @@ async function waitForServer() {
 }
 waitForServer();
 </script>
+<script>
+// Auto-analyze URL if passed from PhishGuard
+window.addEventListener('load', () => {
+  const params = new URLSearchParams(window.location.search);
+  const urlToAnalyze = params.get('url');
+  if (urlToAnalyze) {
+    setTimeout(() => {
+      document.getElementById('chat-input').value =
+        `PhishGuard detected this suspicious URL, please analyze: ${urlToAnalyze}`;
+      sendMessage();
+    }, 2000);
+  }
+});
+</script>
