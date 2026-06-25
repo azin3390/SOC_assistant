@@ -8,13 +8,14 @@ from timeline import generate_timeline_html
 import os, re
 from dotenv import load_dotenv
 
-load_dotenv('/Users/aziniftikhar/soc_assistant/.env')
+load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
 print("Starting SOC Assistant...")
 rag = RAGEngine()
-rag.load_knowledge_base('/Users/aziniftikhar/soc_assistant/data/threat_knowledge.txt')
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+rag.load_knowledge_base(os.path.join(BASE_DIR, 'data', 'threat_knowledge.txt'))
 print("SOC Assistant ready!")
 
 chat_history = []
@@ -50,11 +51,11 @@ def generate_soc_response(query, rag_context, threat_results):
 
 @app.route('/')
 def home():
-    return jsonify({"status": "SOC Assistant running"})
+    return send_from_directory(os.path.join(BASE_DIR, 'frontend'), 'index.html')
 
 @app.route('/dashboard')
 def dashboard():
-    return send_from_directory('/Users/aziniftikhar/soc_assistant/frontend','index.html')
+    return send_from_directory(os.path.join(BASE_DIR, 'frontend'), 'index.html')
 
 @app.route('/chat', methods=['POST'])
 def chat():
@@ -95,7 +96,7 @@ def analyze_logs_route():
 def generate_report_route():
     data = request.get_json()
     if not data: return jsonify({"error": "No data"}), 400
-    output_path = '/Users/aziniftikhar/soc_assistant/threat_report.pdf'
+    output_path = '/tmp/threat_report.pdf'
     generate_report(data, output_path)
     return send_file(output_path, as_attachment=True, download_name='threat_report.pdf')
 
@@ -104,5 +105,6 @@ def history():
     return jsonify({"history": chat_history[-20:]})
 
 if __name__ == '__main__':
-    print("\nSOC Assistant API on http://localhost:5002")
-    app.run(debug=True, port=5002)
+    port = int(os.environ.get('PORT', 5002))
+    print(f"\nSOC Assistant API on http://localhost:{port}")
+    app.run(debug=False, host='0.0.0.0', port=port)
