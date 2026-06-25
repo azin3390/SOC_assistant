@@ -228,7 +228,7 @@ async function sendMessage() {
   addMessage(msg, 'user');
   document.getElementById('thinking').style.display = 'flex';
   try {
-    const resp = await fetch('//chat', {
+    const resp = await fetch('/chat', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({message:msg})
     });
@@ -287,7 +287,7 @@ async function checkIOC() {
   const box=document.getElementById('ioc-result');
   box.style.display='block'; box.className='result-box'; box.innerHTML='⏳ Checking VirusTotal...';
   try {
-    const resp=await fetch('//analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({indicator:val})});
+    const resp=await fetch('/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({indicator:val})});
     const data=await resp.json();
     const cls=data.verdict==='Malicious'?'malicious':data.verdict==='Suspicious'?'suspicious':'clean';
     box.className=`result-box ${cls}`;
@@ -324,7 +324,7 @@ async function analyzeLogs() {
   const resultsPanel = document.getElementById('log-results');
   resultsPanel.innerHTML = '<div style="text-align:center;padding:40px;color:#475569"><div style="font-size:24px;margin-bottom:8px">⏳</div>Analyzing logs...</div>';
   try {
-    const resp = await fetch('//analyze-logs',{
+    const resp = await fetch('/analyze-logs',{
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({logs})
     });
@@ -395,7 +395,7 @@ async function downloadReport() {
       : ["No immediate action required"]
   };
   try {
-    const resp = await fetch('//generate-report',{
+    const resp = await fetch('/generate-report',{
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify(reportData)
     });
@@ -422,7 +422,7 @@ async function waitForServer() {
   const interval = setInterval(async () => {
     attempts++;
     try {
-      const r = await fetch('//');
+      const r = await fetch('/');
       if (r.ok) {
         clearInterval(interval);
         dot.style.background = '#22c55e';
