@@ -108,3 +108,32 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5002))
     print(f"\nSOC Assistant API on http://localhost:{port}")
     app.run(debug=False, host='0.0.0.0', port=port)
+
+from url_scanner import scan_url as ml_scan_url
+
+@app.route('/scan-url', methods=['POST'])
+def scan_url_route():
+    data = request.get_json()
+    if not data or 'url' not in data:
+        return jsonify({"error": "Send JSON with url field"}), 400
+    
+    url = data['url'].strip()
+    
+    # ML analysis
+    ml_result = ml_scan_url(url)
+    
+    # VirusTotal check
+    vt_result = analyze(url.split('/')[2] if '/' in url.replace('://', '') else url)
+    
+    # RAG context
+    rag_context = rag.answer(f"analyze this {ml_result['verdict']} URL: {url}")
+    
+    return jsonify({
+        "url": url,
+        "verdict": ml_result["verdict"],
+        "risk_score": ml_result["risk_score"],
+        "reasons": ml_result["reasons"],
+        "ml_analysis": ml_result["ml_analysis"],
+        "threat_intel": vt_result if 'error' not in vt_result else None,
+        "rag_context": rag_context
+    })
