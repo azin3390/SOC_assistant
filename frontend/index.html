@@ -106,6 +106,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="showPage('chat')">💬 Chat</button>
     <button class="nav-tab" onclick="showPage('logs')">📋 Log Analyzer</button>
+    <button class="nav-tab" onclick="showPage('urlscan')">🛡️ URL Scanner</button>
   </div>
   <div class="status-dot"></div>
 </div>
@@ -169,6 +170,41 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
         <div style="display:flex;align-items:center;gap:8px"><span class="severity-badge sev-high" style="font-size:10px;padding:2px 8px">HIGH</span>Investigate urgently</div>
         <div style="display:flex;align-items:center;gap:8px"><span class="severity-badge sev-medium" style="font-size:10px;padding:2px 8px">MEDIUM</span>Monitor closely</div>
         <div style="display:flex;align-items:center;gap:8px"><span class="severity-badge sev-low" style="font-size:10px;padding:2px 8px">LOW</span>Standard monitoring</div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ==================== URL SCANNER PAGE ==================== -->
+<div class="page" id="page-urlscan">
+  <div class="log-page">
+    <div class="log-input-panel">
+      <div>
+        <div class="panel-title">🛡️ URL Scanner</div>
+        <div class="panel-sub">Scan any URL with ML + VirusTotal — works from any browser!</div>
+      </div>
+      <input type="text" class="indicator-input" id="url-scan-input" 
+        placeholder="https://example.com or paste any suspicious URL..."
+        style="font-size:13px;padding:10px"/>
+      <button class="check-btn" onclick="scanURL()" style="margin-bottom:6px">🔍 Scan URL</button>
+      <button class="check-btn" style="background:#0a1a2e" onclick="loadSampleURLs()">📝 Try Sample URLs</button>
+      <div style="background:#0a0e1a;border-radius:6px;padding:10px;font-size:11px;color:#475569;margin-top:4px">
+        <strong style="color:#64748b">Checks:</strong><br>
+        ML Feature Analysis · HTTPS · IP Detection · Suspicious Keywords · Special Characters · VirusTotal (70+ engines) · RAG Knowledge Base
+      </div>
+      <div id="url-sample-list" style="display:none;margin-top:8px">
+        <div style="font-size:11px;color:#475569;margin-bottom:6px">Click to test:</div>
+        <div onclick="setAndScanURL('https://www.google.com')" style="font-size:12px;color:#38bdf8;cursor:pointer;padding:4px 0;border-bottom:1px solid #1e2d4a">✅ https://www.google.com</div>
+        <div onclick="setAndScanURL('http://paypa1-secure-login.xyz/verify')" style="font-size:12px;color:#f87171;cursor:pointer;padding:4px 0;border-bottom:1px solid #1e2d4a">🛑 paypa1-secure-login.xyz</div>
+        <div onclick="setAndScanURL('http://192.168.1.1/bank/login')" style="font-size:12px;color:#f87171;cursor:pointer;padding:4px 0;border-bottom:1px solid #1e2d4a">🛑 IP address bank</div>
+        <div onclick="setAndScanURL('http://amazon-secure-account-update.tk/signin')" style="font-size:12px;color:#fbbf24;cursor:pointer;padding:4px 0">⚠️ amazon-secure-update.tk</div>
+      </div>
+    </div>
+    <div class="log-results-panel" id="url-scan-results">
+      <div style="text-align:center;padding:60px 20px;color:#475569">
+        <div style="font-size:40px;margin-bottom:12px">🛡️</div>
+        <div style="font-size:16px;margin-bottom:6px">Enter any URL to scan</div>
+        <div style="font-size:13px">Combines PhishGuard ML model + VirusTotal threat intelligence</div>
+        <div style="font-size:12px;margin-top:8px;color:#334155">Works on any browser — no extension needed!</div>
       </div>
     </div>
   </div>
@@ -448,6 +484,141 @@ window.addEventListener('load', () => {
         `PhishGuard detected this suspicious URL, please analyze: ${urlToAnalyze}`;
       sendMessage();
     }, 2000);
+  }
+});
+// ==================== URL SCANNER ====================
+function loadSampleURLs() {
+  const list = document.getElementById('url-sample-list');
+  list.style.display = list.style.display === 'none' ? 'block' : 'none';
+}
+
+function setAndScanURL(url) {
+  document.getElementById('url-scan-input').value = url;
+  scanURL();
+}
+
+async function scanURL() {
+  const url = document.getElementById('url-scan-input').value.trim();
+  if (!url) return alert('Please enter a URL!');
+  
+  const resultsPanel = document.getElementById('url-scan-results');
+  resultsPanel.innerHTML = '<div style="text-align:center;padding:40px;color:#475569"><div style="font-size:24px;margin-bottom:8px">⏳</div>Scanning URL with ML + VirusTotal...</div>';
+
+  try {
+    const resp = await fetch('/scan-url', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({url})
+    });
+    const data = await resp.json();
+    displayURLScanResults(data);
+  } catch(e) {
+    resultsPanel.innerHTML = '<div style="padding:20px;color:#ef4444">❌ Could not reach server.</div>';
+  }
+}
+
+function displayURLScanResults(data) {
+  const sevColors = {Phishing:'#ef4444', Suspicious:'#f59e0b', Safe:'#22c55e'};
+  const color = sevColors[data.verdict] || '#94a3b8';
+  
+  // Risk bar
+  const riskBar = `
+    <div style="background:#0f1629;border:1px solid #1e2d4a;border-radius:8px;padding:14px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div>
+          <div style="font-size:11px;color:#64748b">Risk Score</div>
+          <div style="font-size:42px;font-weight:800;color:${color}">${data.risk_score}%</div>
+        </div>
+        <div style="padding:8px 20px;border-radius:20px;font-size:16px;font-weight:700;
+          background:${data.verdict==='Phishing'?'#450a0a':data.verdict==='Suspicious'?'#451a03':'#052e16'};
+          color:${color}">${data.verdict}</div>
+      </div>
+      <div style="height:8px;border-radius:4px;background:#334155;overflow:hidden;margin-bottom:8px">
+        <div style="height:100%;width:${data.risk_score}%;background:${color};border-radius:4px;transition:width 0.6s"></div>
+      </div>
+      <div style="font-family:monospace;font-size:12px;color:#475569;word-break:break-all">${data.url}</div>
+    </div>`;
+
+  // ML Features table
+  const ml = data.ml_analysis || {};
+  const mlTable = `
+    <div style="background:#0f1629;border:1px solid #1e2d4a;border-radius:8px;padding:14px;margin-bottom:14px">
+      <div style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;margin-bottom:10px">🤖 ML Feature Analysis</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        ${[
+          ['URL Length', ml.url_length, ml.url_length < 75],
+          ['Uses HTTPS', ml.has_https ? 'Yes' : 'No', ml.has_https],
+          ['IP as Hostname', ml.has_ip ? 'Yes ⚠️' : 'No', !ml.has_ip],
+          ['Special Characters', ml.special_chars, ml.special_chars <= 4],
+          ['Digits in URL', ml.digits, ml.digits <= 5],
+          ['Suspicious Keywords', ml.suspicious_keywords?.length ? ml.suspicious_keywords.join(', ') : 'None', !ml.suspicious_keywords?.length],
+          ['Subdomain Depth', ml.subdomain_depth, ml.subdomain_depth <= 2],
+          ['URL Entropy', ml.entropy, ml.entropy < 4.5]
+        ].map(([name, val, good]) => `
+          <tr style="border-bottom:1px solid #1e2d4a">
+            <td style="padding:5px 4px;color:#94a3b8">${name}</td>
+            <td style="padding:5px 4px;font-family:monospace;color:#e2e8f0">${val}</td>
+            <td style="padding:5px 4px;text-align:right">${good ? '<span style="color:#22c55e">✓</span>' : '<span style="color:#ef4444">✗</span>'}</td>
+          </tr>`).join('')}
+      </table>
+    </div>`;
+
+  // VirusTotal results
+  let vtHTML = '';
+  if (data.threat_intel && !data.threat_intel.error) {
+    const vt = data.threat_intel;
+    const vtColor = vt.verdict==='Malicious'?'#f87171':vt.verdict==='Suspicious'?'#fbbf24':'#4ade80';
+    vtHTML = `
+      <div style="background:#0f1629;border:1px solid #1e2d4a;border-radius:8px;padding:14px;margin-bottom:14px">
+        <div style="font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;margin-bottom:10px">🌐 VirusTotal Threat Intelligence</div>
+        <div style="font-size:14px;font-weight:700;color:${vtColor};margin-bottom:8px">${vt.verdict} — ${vt.value}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+          <div style="background:#0a0e1a;border-radius:6px;padding:8px;text-align:center">
+            <div style="font-size:20px;font-weight:700;color:#f87171">${vt.malicious}</div>
+            <div style="font-size:10px;color:#475569">Malicious</div>
+          </div>
+          <div style="background:#0a0e1a;border-radius:6px;padding:8px;text-align:center">
+            <div style="font-size:20px;font-weight:700;color:#fbbf24">${vt.suspicious}</div>
+            <div style="font-size:10px;color:#475569">Suspicious</div>
+          </div>
+          <div style="background:#0a0e1a;border-radius:6px;padding:8px;text-align:center">
+            <div style="font-size:20px;font-weight:700;color:#22c55e">${vt.harmless}</div>
+            <div style="font-size:10px;color:#475569">Harmless</div>
+          </div>
+        </div>
+        ${vt.country ? `<div style="font-size:12px;color:#475569;margin-top:8px">Country: ${vt.country}</div>` : ''}
+      </div>`;
+  }
+
+  // Reasons
+  const reasonsHTML = `
+    <div style="font-size:13px;font-weight:600;color:#e2e8f0;margin-bottom:10px">🚨 Why this verdict?</div>
+    ${(data.reasons||[]).map(r => {
+      const rc = r.severity==='high'?'#ef4444':r.severity==='medium'?'#f59e0b':r.severity==='low'?'#22c55e':'#22c55e';
+      const bg = r.severity==='high'?'#1c0a0a':r.severity==='medium'?'#1c1208':'#081c0e';
+      return `<div style="background:${bg};border-left:3px solid ${rc};border-radius:6px;padding:10px;margin-bottom:8px">
+        <div style="font-size:13px;font-weight:600;color:${rc};margin-bottom:3px">${r.flag}</div>
+        <div style="font-size:12px;color:#94a3b8">${r.detail}</div>
+      </div>`;
+    }).join('')}`;
+
+  document.getElementById('url-scan-results').innerHTML = riskBar + mlTable + vtHTML + reasonsHTML;
+}
+
+// Auto-scan URL if passed from PhishGuard extension
+window.addEventListener('load', () => {
+  const params = new URLSearchParams(window.location.search);
+  const urlToScan = params.get('url');
+  if (urlToScan) {
+    // Switch to URL scanner tab
+    setTimeout(() => {
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('page-urlscan').classList.add('active');
+      document.querySelectorAll('.nav-tab')[2].classList.add('active');
+      document.getElementById('url-scan-input').value = decodeURIComponent(urlToScan);
+      scanURL();
+    }, 1500);
   }
 });
 </script>
