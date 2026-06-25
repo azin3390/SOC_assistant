@@ -5,6 +5,7 @@ from rag_engine import RAGEngine
 from log_analyzer import analyze_logs
 from report_generator import generate_report
 from timeline import generate_timeline_html
+from url_scanner import scan_url as ml_scan_url
 import os, re
 from dotenv import load_dotenv
 
@@ -100,34 +101,19 @@ def generate_report_route():
     generate_report(data, output_path)
     return send_file(output_path, as_attachment=True, download_name='threat_report.pdf')
 
-@app.route('/history', methods=['GET'])
-def history():
-    return jsonify({"history": chat_history[-20:]})
-
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5002))
-    print(f"\nSOC Assistant API on http://localhost:{port}")
-    app.run(debug=False, host='0.0.0.0', port=port)
-
-from url_scanner import scan_url as ml_scan_url
-
 @app.route('/scan-url', methods=['POST'])
 def scan_url_route():
     data = request.get_json()
     if not data or 'url' not in data:
         return jsonify({"error": "Send JSON with url field"}), 400
-    
     url = data['url'].strip()
-    
-    # ML analysis
     ml_result = ml_scan_url(url)
-    
-    # VirusTotal check
-    vt_result = analyze(url.split('/')[2] if '/' in url.replace('://', '') else url)
-    
-    # RAG context
+    try:
+        domain = url.replace('http://','').replace('https://','').split('/')[0]
+        vt_result = analyze(domain)
+    except:
+        vt_result = {"error": "Could not extract domain"}
     rag_context = rag.answer(f"analyze this {ml_result['verdict']} URL: {url}")
-    
     return jsonify({
         "url": url,
         "verdict": ml_result["verdict"],
@@ -137,3 +123,12 @@ def scan_url_route():
         "threat_intel": vt_result if 'error' not in vt_result else None,
         "rag_context": rag_context
     })
+
+@app.route('/history', methods=['GET'])
+def history():
+    return jsonify({"history": chat_history[-20:]})
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5002))
+    print(f"\nSOC Assistant API on http://localhost:{port}")
+    app.run(debug=False, host='0.0.0.0', port=port)
