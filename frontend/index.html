@@ -149,6 +149,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
     <button class="nav-tab active" onclick="showPage('chat')">💬 Chat</button>
     <button class="nav-tab" onclick="showPage('logs')">📋 Log Analyzer</button>
     <button class="nav-tab" onclick="showPage('urlscan')">🛡️ URL Scanner</button>
+    <button class="nav-tab" onclick="showPage('crime')">🔍 Crime Scene</button>
   </div>
   <div class="status-dot"></div>
 </div>
@@ -247,6 +248,48 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
         <div style="font-size:16px;margin-bottom:6px">Enter any URL to scan</div>
         <div style="font-size:13px">Combines PhishGuard ML model + VirusTotal threat intelligence</div>
         <div style="font-size:12px;margin-top:8px;color:#334155">Works on any browser — no extension needed!</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ==================== CRIME SCENE PAGE ==================== -->
+<div class="page" id="page-crime">
+  <div style="display:flex;height:100%;overflow:hidden">
+    <div style="width:320px;flex-shrink:0;border-right:1px solid #1e2d4a;padding:20px;overflow-y:auto;background:#080d1a">
+      <div style="font-size:15px;font-weight:700;color:#e2e8f0;margin-bottom:4px">🔍 Crime Scene Analyzer</div>
+      <div style="font-size:12px;color:#475569;margin-bottom:16px">Paste any incident data — logs, emails, alerts, IOCs</div>
+      <textarea id="crime-input" style="width:100%;height:220px;background:#0a0e1a;border:1px solid #1e2d4a;border-radius:8px;padding:10px;color:#e2e8f0;font-family:monospace;font-size:11px;resize:vertical;outline:none;margin-bottom:10px" placeholder="Paste incident details here..."></textarea>
+      <button onclick="analyzeCrimeScene()" style="width:100%;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:white;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px">🔍 Investigate</button>
+      <button onclick="loadCrimeSample()" style="width:100%;background:#0a1a2e;color:#64748b;border:1px solid #1e2d4a;border-radius:8px;padding:8px;font-size:12px;cursor:pointer;margin-bottom:16px">📋 Load Sample Incident</button>
+      <div id="crime-iocs" style="display:none">
+        <div style="font-size:11px;font-weight:600;color:#475569;text-transform:uppercase;margin-bottom:8px">Extracted IOCs</div>
+        <div id="ioc-list"></div>
+      </div>
+      <div id="crime-timeline-side" style="display:none;margin-top:16px">
+        <div style="font-size:11px;font-weight:600;color:#475569;text-transform:uppercase;margin-bottom:8px">Attack Chain</div>
+        <div id="timeline-steps"></div>
+      </div>
+    </div>
+    <div style="flex:1;overflow:auto;background:radial-gradient(ellipse at center,#0d1117 0%,#080d1a 100%)" id="crime-board">
+      <div id="crime-empty" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#1e2d4a">
+        <div style="font-size:80px;margin-bottom:16px;opacity:0.3">🔍</div>
+        <div style="font-size:20px;font-weight:600;color:#1e3a5f">Crime Scene Awaits</div>
+        <div style="font-size:14px;color:#334155;margin-top:8px">Paste incident data and click Investigate</div>
+      </div>
+      <div id="crime-content" style="display:none;padding:30px">
+        <div id="case-header" style="text-align:center;margin-bottom:40px">
+          <div style="font-size:11px;letter-spacing:4px;color:#475569;text-transform:uppercase;margin-bottom:8px">CLASSIFIED INVESTIGATION</div>
+          <div id="case-status-display" style="font-size:32px;font-weight:800;margin-bottom:8px"></div>
+          <div id="case-summary-display" style="font-size:14px;color:#94a3b8;max-width:600px;margin:0 auto"></div>
+        </div>
+        <div style="font-size:11px;letter-spacing:3px;color:#475569;text-transform:uppercase;margin-bottom:16px;text-align:center">── EVIDENCE BOARD ──</div>
+        <div id="evidence-grid" style="display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-bottom:40px"></div>
+        <div id="timeline-section" style="display:none;max-width:700px;margin:0 auto 40px">
+          <div style="font-size:11px;letter-spacing:3px;color:#475569;text-transform:uppercase;margin-bottom:20px;text-align:center">── ATTACK TIMELINE ──</div>
+          <div id="timeline-display"></div>
+        </div>
       </div>
     </div>
   </div>
