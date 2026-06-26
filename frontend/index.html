@@ -93,6 +93,48 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; backg
 .summary-stat .lbl{font-size:10px;color:#475569}
 .report-btn{width:100%;background:linear-gradient(135deg,#1e3a5f,#0f2744);color:#38bdf8;border:1px solid #1e4a7f;border-radius:6px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px}
 .report-btn:hover{background:linear-gradient(135deg,#1e4a7f,#1e3a5f)}
+
+/* Crime Scene Animations */
+@keyframes fadeInUp {
+  from { opacity:0; transform:translateY(30px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes pulse-border {
+  0%,100% { box-shadow:0 0 0 0 rgba(239,68,68,0.4); }
+  50% { box-shadow:0 0 0 8px rgba(239,68,68,0); }
+}
+@keyframes scanline {
+  0% { top:-10%; }
+  100% { top:110%; }
+}
+.evidence-card {
+  cursor:pointer;
+  transition:all 0.3s ease;
+  position:relative;
+  overflow:hidden;
+}
+.evidence-card::before {
+  content:"";
+  position:absolute;
+  top:-100%;
+  left:0;
+  width:100%;
+  height:100%;
+  background:linear-gradient(transparent,rgba(255,255,255,0.03),transparent);
+  animation:scanline 3s linear infinite;
+}
+.evidence-card.critical {
+  animation:pulse-border 2s infinite;
+}
+.timeline-step {
+  display:flex;
+  align-items:flex-start;
+  gap:14px;
+  margin-bottom:16px;
+  animation:fadeInUp 0.5s ease forwards;
+  opacity:0;
+}
+
 </style>
 </head>
 <body>
@@ -621,4 +663,151 @@ window.addEventListener('load', () => {
     }, 1500);
   }
 });
+
+// ==================== CRIME SCENE ====================
+function loadCrimeSample() {
+  document.getElementById("crime-input").value = `INCIDENT REPORT - Case #2026-0623
+Date: 2026-06-23 10:15:01
+
+INITIAL ALERT:
+User john.doe@company.com received phishing email from admin@paypa1-secure.tk
+Subject: URGENT: Your account will be suspended - Verify Now
+User clicked malicious URL: http://paypa1-secure.tk/verify/account?token=abc123
+
+AUTHENTICATION LOGS:
+Failed password for root from 185.220.101.45 port 22
+Failed password for admin from 185.220.101.45 port 22
+authentication failure from 185.220.101.45
+
+ENDPOINT DETECTION:
+PowerShell execution detected on WORKSTATION-042
+Command: powershell.exe -ExecutionPolicy Bypass -enc SGVsbG8gV29ybGQ=
+Malware signature detected: Trojan.GenericKD
+
+C2 COMMUNICATION:
+Outbound connection to 45.33.32.156:4444 established
+Beaconing interval: 60 seconds
+
+LATERAL MOVEMENT:
+SMB connection from WORKSTATION-042 to FILESERVER-01
+Mimikatz activity detected - credential dumping
+
+DATA EXFILTRATION:
+Large outbound transfer: 847MB to 91.108.4.1
+POST request with 950000 bytes to http://paste.ee/upload`;
+}
+
+async function analyzeCrimeScene() {
+  const incident = document.getElementById("crime-input").value.trim();
+  if (!incident) return alert("Please paste incident data first!");
+
+  document.getElementById("crime-empty").style.display = "none";
+  document.getElementById("crime-content").style.display = "block";
+  document.getElementById("case-status-display").innerHTML = "<span style=\"color:#475569;font-size:18px\">🔍 Analyzing evidence...</span>";
+  document.getElementById("evidence-grid").innerHTML = "<div style=\"color:#475569;text-align:center;width:100%;padding:40px\">Processing incident data...</div>";
+
+  try {
+    const resp = await fetch("/crime-scene", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({incident})
+    });
+    const data = await resp.json();
+    displayCrimeScene(data);
+  } catch(e) {
+    document.getElementById("case-status-display").innerHTML = "<span style=\"color:#ef4444\">Could not reach server</span>";
+  }
+}
+
+function displayCrimeScene(data) {
+  const statusEl = document.getElementById("case-status-display");
+  statusEl.style.color = data.case_color;
+  statusEl.style.textShadow = "0 0 20px " + data.case_color + "40";
+
+  let i = 0;
+  const text = data.case_status;
+  statusEl.textContent = "";
+  const typeInterval = setInterval(() => {
+    statusEl.textContent += text[i];
+    i++;
+    if (i >= text.length) clearInterval(typeInterval);
+  }, 60);
+
+  document.getElementById("case-summary-display").textContent = data.case_summary;
+
+  const grid = document.getElementById("evidence-grid");
+  grid.innerHTML = "";
+
+  data.evidence_cards.forEach((card, idx) => {
+    const el = document.createElement("div");
+    el.className = "evidence-card " + (card.severity === "Critical" ? "critical" : "");
+    el.style.cssText = "background:#0f1629;border-radius:12px;padding:18px;width:190px;border:1px solid " + card.color + "40;animation:fadeInUp 0.5s ease " + (idx * 0.15) + "s forwards;opacity:0;position:relative;overflow:hidden;box-shadow:0 0 20px " + card.color + "20";
+
+    el.innerHTML =
+      "<div style=\"position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent," + card.color + ",transparent)\"></div>" +
+      "<div style=\"font-size:32px;margin-bottom:10px;text-align:center\">" + card.icon + "</div>" +
+      "<div style=\"font-size:13px;font-weight:700;color:#e2e8f0;text-align:center;margin-bottom:6px\">" + card.label + "</div>" +
+      "<div style=\"text-align:center;margin-bottom:10px\">" +
+        "<span style=\"font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;background:" + (card.severity==="Critical"?"#450a0a":card.severity==="High"?"#431407":"#451a03") + ";color:" + (card.severity==="Critical"?"#f87171":card.severity==="High"?"#fb923c":"#fbbf24") + "\">" + card.severity + "</span>" +
+      "</div>" +
+      "<div style=\"font-size:10px;color:#334155;text-align:center\">" + card.occurrences + " match" + (card.occurrences>1?"es":"") + "</div>" +
+      "<div style=\"margin-top:10px;border-top:1px solid #1e2d4a;padding-top:8px\">" +
+        card.questions.slice(0,2).map(q => "<div style=\"font-size:10px;color:#475569;padding:2px 0\">❓ " + q + "</div>").join("") +
+      "</div>";
+
+    el.addEventListener("mouseenter", () => {
+      el.style.transform = "translateY(-6px) scale(1.02)";
+      el.style.boxShadow = "0 12px 40px " + card.color + "40";
+    });
+    el.addEventListener("mouseleave", () => {
+      el.style.transform = "";
+      el.style.boxShadow = "0 0 20px " + card.color + "20";
+    });
+
+    grid.appendChild(el);
+  });
+
+  if (data.attack_timeline && data.attack_timeline.length > 0) {
+    document.getElementById("timeline-section").style.display = "block";
+    const tlEl = document.getElementById("timeline-display");
+    const colors = ["#ef4444","#f97316","#a855f7","#14b8a6","#eab308","#ec4899","#3b82f6"];
+
+    tlEl.innerHTML = data.attack_timeline.map((step, i) =>
+      "<div class=\"timeline-step\" style=\"animation-delay:" + ((data.evidence_cards.length * 0.15) + i * 0.2) + "s\">" +
+        "<div style=\"position:relative;display:flex;flex-direction:column;align-items:center\">" +
+          "<div style=\"width:12px;height:12px;border-radius:50%;background:" + colors[i%colors.length] + ";box-shadow:0 0 8px " + colors[i%colors.length] + ";flex-shrink:0\"></div>" +
+          (i < data.attack_timeline.length-1 ? "<div style=\"width:2px;flex:1;min-height:30px;background:linear-gradient(to bottom," + colors[i%colors.length] + "," + colors[(i+1)%colors.length] + ");margin-top:4px\"></div>" : "") +
+        "</div>" +
+        "<div style=\"background:#0f1629;border:1px solid " + colors[i%colors.length] + "30;border-radius:8px;padding:10px 14px;flex:1\">" +
+          "<div style=\"font-size:13px;color:#e2e8f0;font-weight:500\">" + step + "</div>" +
+        "</div>" +
+      "</div>"
+    ).join("");
+
+    document.getElementById("crime-timeline-side").style.display = "block";
+    document.getElementById("timeline-steps").innerHTML = data.attack_timeline.map((s,i) =>
+      "<div style=\"font-size:11px;color:#64748b;padding:4px 0;border-left:2px solid " + colors[i%colors.length] + ";padding-left:8px;margin-bottom:6px\">" + s + "</div>"
+    ).join("");
+  }
+
+  const iocs = data.iocs;
+  if (Object.values(iocs).some(arr => arr.length > 0)) {
+    document.getElementById("crime-iocs").style.display = "block";
+    const iocEl = document.getElementById("ioc-list");
+    iocEl.innerHTML = "";
+    const iocTypes = [
+      {key:"ips",label:"IPs",color:"#ef4444"},
+      {key:"emails",label:"Emails",color:"#f97316"},
+      {key:"urls",label:"URLs",color:"#a855f7"},
+      {key:"hashes",label:"Hashes",color:"#06b6d4"}
+    ];
+    iocTypes.forEach(({key, label, color}) => {
+      if (iocs[key] && iocs[key].length > 0) {
+        iocEl.innerHTML += "<div style=\"margin-bottom:8px\"><div style=\"font-size:10px;color:" + color + ";font-weight:600;margin-bottom:3px\">" + label + "</div>" +
+          iocs[key].slice(0,3).map(v => "<div style=\"font-size:10px;font-family:monospace;color:#64748b;background:#0a0e1a;padding:2px 6px;border-radius:3px;margin-bottom:2px;word-break:break-all\">" + (v.length > 35 ? v.substring(0,35)+"..." : v) + "</div>").join("") +
+        "</div>";
+      }
+    });
+  }
+}
+
 </script>

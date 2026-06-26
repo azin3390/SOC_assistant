@@ -7,6 +7,8 @@ from report_generator import generate_report
 from timeline import generate_timeline_html
 from url_scanner import scan_url as ml_scan_url
 import os, re
+import math
+from crime_scene import analyze_crime_scene
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -127,6 +129,14 @@ def scan_url_route():
 @app.route('/history', methods=['GET'])
 def history():
     return jsonify({"history": chat_history[-20:]})
+
+@app.route('/crime-scene', methods=['POST'])
+def crime_scene_route():
+    data = request.get_json()
+    if not data or 'incident' not in data:
+        return jsonify({"error": "Send JSON with incident field"}), 400
+    result = analyze_crime_scene(data['incident'])
+    return jsonify(result)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5002))
