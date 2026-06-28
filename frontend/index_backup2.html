@@ -243,6 +243,148 @@ body { background:var(--mystic-bg) !important; }
 }
 .cs-action-card:hover { background:#1a1630; }
 
+
+/* ═══ CRIME SCENE REDESIGN ═══ */
+.crime-board { background: #1a0f00 !important; }
+.cork-bg {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='4' fill='%23231500'/%3E%3Ccircle cx='1' cy='1' r='.5' fill='%23332000' opacity='.5'/%3E%3C/svg%3E") !important;
+  opacity:1 !important;
+}
+/* Yellow tape redesign */
+.crime-tape {
+  background: repeating-linear-gradient(90deg,
+    #FFE000 0px, #FFE000 70px,
+    #111 70px, #111 90px) !important;
+  color: #111 !important;
+  font-family: 'Arial Black', sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  letter-spacing: 2px !important;
+  padding: 7px 0 !important;
+  box-shadow: 0 3px 12px rgba(0,0,0,.8) !important;
+  border-top: 2px solid #FFE000 !important;
+  border-bottom: 2px solid #FFE000 !important;
+}
+/* Evidence cards - manila folder / polaroid style */
+.ev-card {
+  width: 185px !important;
+  background: #f5e6c8 !important;
+  border-radius: 3px !important;
+  box-shadow: 3px 3px 12px rgba(0,0,0,.7), 0 0 0 1px rgba(0,0,0,.3) !important;
+  border: none !important;
+}
+.ev-card::before { content: '📌' !important; top:-14px !important; font-size:18px !important; filter: drop-shadow(0 2px 4px rgba(0,0,0,.6)) !important; }
+.ev-photo {
+  background: #2a1a00 !important;
+  border-bottom: 3px solid #8B6914 !important;
+  padding: 14px 12px 10px !important;
+}
+.ev-icon { filter: drop-shadow(0 0 10px rgba(255,100,50,.6)) !important; }
+.ev-label { color: #FFD700 !important; font-family: 'Courier New', monospace !important; font-size: 11px !important; }
+.ev-info { background: #f5e6c8 !important; border-radius: 0 0 3px 3px !important; }
+.ev-count { color: #8B4513 !important; font-family: 'Courier New', monospace !important; }
+.ev-q { color: #5a3010 !important; font-family: 'Courier New', monospace !important; font-size: 9px !important; }
+/* Red string */
+#string-svg path { stroke: #CC0000 !important; stroke-width: 2px !important; opacity: 0.85 !important; stroke-dasharray: none !important; filter: drop-shadow(0 0 3px rgba(200,0,0,.5)); }
+/* Verdict banner */
+.verdict-banner { background: rgba(20,10,0,.95) !important; border-bottom: 1px solid #8B6914 !important; }
+/* Section labels */
+.section-label { color: #FFD700 !important; font-family: 'Courier New', monospace !important; }
+.section-label::after { background: #8B6914 !important; }
+/* IOC cards */
+.ioc-card { background: #1a1000 !important; border-color: #8B6914 !important; }
+.ioc-val { background: #0d0800 !important; color: #ccc !important; }
+.act-card { background: #1a1000 !important; border-color: #333 !important; }
+/* Timeline */
+.cs-tl-box { background: #1a1000 !important; border-color: #333 !important; }
+/* Crime left panel */
+.crime-lp { background: #0f0800 !important; border-color: #8B6914 !important; }
+.crime-lp-header { border-color: #8B6914 !important; }
+.crime-textarea { background: #0a0600 !important; border-color: #8B6914 !important; color: #ccc !important; }
+.crime-textarea:focus { border-color: #FFD700 !important; }
+.btn-investigate { background: linear-gradient(135deg, #8B1A1A, #CC0000) !important; }
+/* Blood splatter decoration */
+.crime-board::after {
+  content: '🩸';
+  position: fixed;
+  bottom: 120px;
+  right: 40px;
+  font-size: 28px;
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 0;
+  transform: rotate(45deg);
+  filter: blur(1px);
+}
+
+/* Evidence number markers */
+.ev-card .ev-number {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  width: 22px;
+  height: 22px;
+  background: #FFD700;
+  color: #000;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #000;
+  z-index: 10;
+  font-family: Arial Black, sans-serif;
+}
+/* Fingerprint watermark */
+.pinboard::before {
+  content: '🔍';
+  position: absolute;
+  right: 30px;
+  top: 20px;
+  font-size: 80px;
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 0;
+}
+/* TOP SECRET stamp on verdict */
+#cs-verdict::after {
+  content: '';
+  display: block;
+}
+.top-secret-stamp {
+  display: inline-block;
+  border: 3px solid #CC0000;
+  color: #CC0000;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 3px 10px;
+  letter-spacing: 3px;
+  transform: rotate(-5deg);
+  margin-top: 8px;
+  opacity: 0.85;
+  text-transform: uppercase;
+}
+/* Case file style for input panel */
+.crime-lp-header::before {
+  content: 'CASE FILE';
+  display: block;
+  font-size: 9px;
+  color: #FFD700;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 3px;
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+/* Wanted poster for empty state */
+#cs-empty {
+  background: radial-gradient(ellipse at center, #1a0f00, #0d0800) !important;
+}
+/* Mini steps styling */
+.mini-step { color: #aaa !important; border-left-width: 2px !important; font-family: 'Courier New', monospace !important; font-size: 10px !important; }
+
 </style>
 </head>
 <body>
