@@ -224,6 +224,10 @@ def history():
 def galaxy():
     return send_from_directory(os.path.join(BASE_DIR, 'frontend'), 'galaxy.html')
 
+@app.route('/health')
+def health():
+    return jsonify({"status": "ok"}), 200
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5002))
     print(f"\nSentinel SOC on http://localhost:{port}")

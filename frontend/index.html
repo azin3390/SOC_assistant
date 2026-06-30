@@ -569,6 +569,14 @@ canvas{width:100%!important}
 </head>
 <body>
 
+<div id="boot-screen" style="position:fixed;inset:0;background:#0D1321;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+  <div style="width:48px;height:48px;border:3px solid rgba(255,107,107,.2);border-top-color:#FF6B6B;border-radius:50%;animation:spin 0.8s linear infinite"></div>
+  <div style="color:#F8FAFC;font-size:14px;font-weight:600">Connecting to Sentinel SOC…</div>
+  <div id="boot-sub" style="color:#8899AA;font-size:12px">Waking up server (free tier can take up to 30s)</div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+
 <!-- ══ TOPBAR ══ -->
 <div class="topbar">
   <div class="logo">
@@ -1930,6 +1938,35 @@ function investigateFromGalaxy(){
   document.getElementById('chat-input').value = `Tell me about current threats in ${selectedGalaxyPlanet.label} — ${selectedGalaxyPlanet.info.Threats} threats detected, status: ${selectedGalaxyPlanet.info.Status}`;
   sendMessage();
 }
+
+
+// ══ BOOT / SLEEP-RETRY LOGIC ══════════════════════════════════
+(function bootCheck(){
+  let attempts = 0;
+  const maxAttempts = 20;
+  const sub = document.getElementById('boot-sub');
+
+  function tryConnect(){
+    attempts++;
+    fetch('/overview-stats', { cache: 'no-store' })
+      .then(r => {
+        if (r.ok) {
+          document.getElementById('boot-screen').style.display = 'none';
+        } else {
+          throw new Error('not ready');
+        }
+      })
+      .catch(() => {
+        if (attempts < maxAttempts) {
+          if (sub) sub.textContent = `Waking up server… attempt ${attempts}/${maxAttempts}`;
+          setTimeout(tryConnect, 1500);
+        } else {
+          if (sub) sub.innerHTML = 'Could not connect. <a href="javascript:location.reload()" style="color:#4ECDC4">Tap to retry</a>';
+        }
+      });
+  }
+  tryConnect();
+})();
 
 </script>
 </body>
