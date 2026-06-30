@@ -49,7 +49,7 @@ class RAGEngine:
         
         print(f"Knowledge base ready! {len(self.chunks)} chunks indexed.")
 
-    def search(self, query, top_k=3):
+    def search(self, query, top_k=4):
         """Find the most relevant chunks for a query"""
         if self.index is None:
             return ["Knowledge base not loaded yet."]

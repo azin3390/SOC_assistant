@@ -22,6 +22,7 @@ rag.load_knowledge_base(os.path.join(BASE_DIR, 'data', 'threat_knowledge.txt'))
 print("Sentinel SOC ready!")
 
 chat_history = []
+conversation_memory = {}
 
 def detect_indicators(text):
     indicators = []
@@ -65,14 +66,26 @@ def chat():
     if not data or 'message' not in data:
         return jsonify({"error": "Send JSON with a message field"}), 400
     query = data['message'].strip()
+    session_id = data.get('session_id', 'default')
+
+    # Maintain simple conversation memory per session
+    if session_id not in conversation_memory:
+        conversation_memory[session_id] = []
+    conversation_memory[session_id].append({"role": "user", "text": query})
+    conversation_memory[session_id] = conversation_memory[session_id][-10:]  # keep last 10 turns
+
     rag_context = rag.answer(query)
     indicators = detect_indicators(query)
     threat_results = []
     for itype, ivalue in indicators:
         result = analyze(ivalue)
         if 'error' not in result: threat_results.append(result)
+
     response = generate_soc_response(query, rag_context, threat_results)
+    conversation_memory[session_id].append({"role": "assistant", "text": rag_context[:200]})
+
     chat_history.append({"query":query,"severity":response["severity"]})
+    print(f"[CHAT] {query[:50]} | Severity: {response['severity']}")
     return jsonify(response)
 
 @app.route('/analyze', methods=['POST'])

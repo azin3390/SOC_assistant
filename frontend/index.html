@@ -1354,7 +1354,7 @@ function renderChat(d){
       h+=`<span style="color:${c}">● ${t.value}: ${t.verdict} (${t.malicious} detections)</span><br>`;
     });
   }
-  if(d.rag_context) h+=`<br><strong>📚 Knowledge Base</strong><br><span style="color:var(--muted);font-size:13px;line-height:1.6">${d.rag_context.substring(0,700)}${d.rag_context.length>700?'…':''}</span>`;
+  if(d.rag_context) h+=`<br><strong>📚 Knowledge Base</strong><br><span style="color:var(--muted);font-size:13px;line-height:1.6;white-space:pre-wrap">${d.rag_context}</span>`;
   addMsg(h,'assistant');
   if(d.recommendations&&d.recommendations.length)
     document.getElementById('recs').innerHTML=d.recommendations.map(r=>`<div class="rec-item"><span style="color:var(--accent)">→</span>${r}</div>`).join('');
