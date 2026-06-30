@@ -1769,6 +1769,7 @@ function drawRedStrings(cardEls,cards){
 // ══ Auto-scan URL from PhishGuard ════════════════════════════
 window.addEventListener('load',()=>{
   loadOverview();
+  setupFilterChips();
   const p=new URLSearchParams(window.location.search);
   const u=p.get('url');
   if(u){
@@ -1987,6 +1988,70 @@ document.addEventListener('mousemove', (e)=>{
   }
   tryConnect();
 })();
+
+
+// ══ FIXED UI INTERACTIONS ═════════════════════════════════════
+function toggleNotifPanel(e){
+  event.stopPropagation();
+  const p = document.getElementById('notif-panel');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+  document.getElementById('admin-menu').style.display = 'none';
+}
+function toggleAdminMenu(){
+  event.stopPropagation();
+  const m = document.getElementById('admin-menu');
+  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+  document.getElementById('notif-panel').style.display = 'none';
+}
+document.addEventListener('click', ()=>{
+  const np = document.getElementById('notif-panel');
+  const am = document.getElementById('admin-menu');
+  if(np) np.style.display = 'none';
+  if(am) am.style.display = 'none';
+});
+
+function createNewIncident(){
+  const title = prompt('Incident title:');
+  if(!title) return;
+  const severity = prompt('Severity (Critical / High / Medium / Low):', 'Medium') || 'Medium';
+  const tbody = document.getElementById('incidents-full-tbody') || document.getElementById('incidents-tbody');
+  if(tbody){
+    const row = document.createElement('tr');
+    const sevClass = severity.toLowerCase();
+    row.innerHTML = `
+      <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">INC-NEW-${Math.floor(Math.random()*999)}</td>
+      <td style="font-size:13px;font-weight:500">${title}</td>
+      <td><span class="badge badge-${sevClass}">${severity}</span></td>
+      <td><span class="status-badge status-investigating">Investigating</span></td>
+      <td style="font-size:12px;color:var(--muted)">Just now</td>
+      <td style="font-size:12px;color:var(--muted)">You</td>`;
+    tbody.prepend(row);
+  }
+  alert('✅ Incident created: ' + title);
+}
+
+// Filter chips on Alerts page actually filter the table
+function setupFilterChips(){
+  document.querySelectorAll('.filter-bar .filter-chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      document.querySelectorAll('.filter-bar .filter-chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active');
+      const filter = chip.textContent.trim();
+      const rows = document.querySelectorAll('#alerts-full-tbody tr');
+      rows.forEach(row=>{
+        if(filter === 'All'){
+          row.style.display = '';
+        } else {
+          const badge = row.querySelector('.badge');
+          const text = row.textContent;
+          const matchesSeverity = badge && badge.textContent.trim() === filter;
+          const matchesType = text.toLowerCase().includes(filter.toLowerCase());
+          row.style.display = (matchesSeverity || matchesType) ? '' : 'none';
+        }
+      });
+    });
+  });
+}
 
 </script>
 </body>
