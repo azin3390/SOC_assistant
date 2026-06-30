@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cyber Galaxy — Sentinel SOC</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0a0818;--panel:#12103a;--panel2:#1a1650;--border:rgba(120,80,255,.2);
+  --purple:#8B5CF6;--cyan:#06B6D4;--pink:#EC4899;--gold:#F59E0B;--green:#10B981;
+  --text:#F8FAFC;--muted:#6B7280;--font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes glow{0%,100%{opacity:.7}50%{opacity:1}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes twinkle{0%,100%{opacity:.15}50%{opacity:.9}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes orbitCW{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes waveMove{0%{background-position:0 0}100%{background-position:200px 0}}
+@keyframes scanRadar{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes shootingStar{0%{transform:translateX(0) translateY(0);opacity:1}100%{transform:translateX(-300px) translateY(150px);opacity:0}}
+
+/* MAIN GRID */
+.app{display:grid;grid-template-columns:200px 1fr 300px;grid-template-rows:auto 1fr auto;height:100vh;gap:0;position:relative}
+
+/* ── TOPBAR ── */
+.topbar{grid-column:2/3;background:transparent;padding:10px 20px 0;display:flex;align-items:center;justify-content:space-between;z-index:50}
+.quote{font-size:12px;color:rgba(180,160,255,.6);font-style:italic;text-align:center;flex:1}
+.top-right{display:flex;align-items:center;gap:16px}
+.top-date{font-size:11px;color:var(--muted);text-align:right}
+.top-time{font-size:28px;font-weight:800;color:var(--text);line-height:1;letter-spacing:-1px}
+.top-time-sub{font-size:14px;color:var(--muted);line-height:1}
+.notif-btn{width:36px;height:36px;border-radius:50%;background:var(--panel2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative}
+.notif-dot{position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:var(--pink);border:2px solid var(--bg)}
+
+/* ── LEFT SIDEBAR ── */
+.sidebar{grid-column:1/2;grid-row:1/4;background:rgba(10,8,24,.9);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:20px 0;z-index:50;backdrop-filter:blur(20px)}
+.brand-wrap{padding:0 20px 20px;border-bottom:1px solid var(--border)}
+.brand-icon{width:44px;height:44px;margin-bottom:10px;background:linear-gradient(135deg,var(--purple),var(--cyan));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.brand-name{font-size:16px;font-weight:800;letter-spacing:2px;color:var(--text)}
+.brand-tag{font-size:9px;color:rgba(180,160,255,.5);letter-spacing:2px;margin-top:2px}
+
+.nav{flex:1;padding:16px 12px;display:flex;flex-direction:column;gap:4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13px;color:var(--muted);font-weight:500;transition:all .2s;letter-spacing:.3px}
+.nav-item:hover{background:rgba(139,92,246,.1);color:var(--text)}
+.nav-item.active{background:linear-gradient(135deg,rgba(139,92,246,.25),rgba(6,182,212,.1));color:var(--purple);border:1px solid rgba(139,92,246,.3)}
+.nav-item .ni{font-size:16px;width:20px;text-align:center}
+
+.welcome-card{margin:12px;padding:14px;background:linear-gradient(135deg,rgba(139,92,246,.15),rgba(6,182,212,.08));border:1px solid rgba(139,92,246,.2);border-radius:12px}
+.wc-label{font-size:10px;color:var(--muted);letter-spacing:.5px;margin-bottom:4px}
+.wc-name{font-size:14px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px}
+.wc-chevron{font-size:10px;color:var(--muted)}
+
+.galactic-card{margin:0 12px 12px;padding:14px;background:rgba(10,8,24,.6);border:1px solid var(--border);border-radius:12px}
+.gc-title{font-size:9px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;display:flex;justify-content:space-between}
+.gc-mini-chart{height:40px;margin-bottom:10px;position:relative;overflow:hidden;border-radius:4px}
+#mini-chart-canvas{width:100%;height:100%}
+.gc-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.gc-stat .gl{font-size:9px;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;display:flex;align-items:center;gap:4px}
+.gc-stat .gv{font-size:14px;font-weight:700;color:var(--cyan);margin-top:2px}
+
+/* ── KPI ROW ── */
+.kpi-row{grid-column:2/3;padding:8px 20px 0;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;z-index:40}
+.kpi-card{background:rgba(18,16,58,.7);border:1px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;backdrop-filter:blur(8px);transition:all .2s;cursor:default}
+.kpi-card:hover{border-color:rgba(139,92,246,.4);box-shadow:0 8px 24px rgba(139,92,246,.15);transform:translateY(-1px)}
+.kpi-icon-wrap{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.kpi-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.kpi-value{font-size:22px;font-weight:800;color:var(--text);line-height:1;letter-spacing:-0.5px}
+.kpi-change{font-size:11px;font-weight:600;margin-top:3px}
+.kpi-up{color:#10B981}
+
+/* ── CENTER GALAXY ── */
+.galaxy-center{grid-column:2/3;grid-row:2/3;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+#bg-canvas{position:absolute;inset:0;width:100%;height:100%}
+#planet-layer{position:absolute;inset:0;z-index:10}
+#line-canvas{position:absolute;inset:0;pointer-events:none;z-index:8}
+
+/* Planet */
+.planet-node{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;cursor:pointer;z-index:15;transition:all .3s}
+.planet-node:hover{z-index:50}
+.planet-node:hover .pn-sphere{transform:scale(1.2)}
+.pn-sphere{border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;position:relative;transition:transform .3s;border:1px solid rgba(255,255,255,.15)}
+.pn-orbit{position:absolute;border-radius:50%;border:1px solid rgba(255,255,255,.12);animation:orbitCW linear infinite;top:50%;left:50%;transform:translate(-50%,-50%)}
+.pn-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.85);margin-top:7px;text-align:center;line-height:1.4;text-shadow:0 1px 6px rgba(0,0,0,.9);letter-spacing:.3px}
+.pn-count{font-size:9px;color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:.3px}
+
+/* Bottom overview chart */
+.bottom-chart-wrap{grid-column:2/3;background:rgba(18,16,58,.7);border-top:1px solid var(--border);border-radius:0;padding:12px 20px;z-index:40;backdrop-filter:blur(8px)}
+.bc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.bc-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.bc-select{background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.2);border-radius:6px;color:var(--purple);font-size:11px;padding:3px 8px;cursor:pointer;outline:none}
+#overview-canvas{width:100%;height:70px}
+
+/* ── RIGHT PANEL ── */
+.right-panel{grid-column:3/4;grid-row:1/4;background:rgba(10,8,24,.9);border-left:1px solid var(--border);padding:16px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;z-index:50;backdrop-filter:blur(20px)}
+.right-panel::-webkit-scrollbar{width:3px}
+.right-panel::-webkit-scrollbar-thumb{background:rgba(139,92,246,.3)}
+
+.rp-box{background:rgba(18,16,58,.6);border:1px solid var(--border);border-radius:12px;padding:14px}
+.rp-title{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.rp-title .rpt-dots{font-size:14px;cursor:pointer;color:var(--muted)}
+
+/* Threat level gauge */
+.tl-gauge-wrap{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+#tl-canvas{flex-shrink:0}
+.tl-info .tl-text{font-size:18px;font-weight:800;color:var(--gold);letter-spacing:1px}
+.tl-info .tl-sub{font-size:10px;color:var(--muted);margin-top:3px}
+.tl-legend{display:flex;flex-direction:column;gap:5px}
+.tl-row{display:flex;align-items:center;gap:8px;font-size:11px}
+.tl-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;box-shadow:0 0 5px currentColor}
+.tl-label{color:var(--muted);flex:1}
+.tl-num{font-weight:700;color:var(--text);font-size:12px}
+
+/* Attack vectors */
+.av-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:11px}
+.av-name{color:var(--muted);width:80px;flex-shrink:0}
+.av-track{flex:1;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden}
+.av-fill{height:100%;border-radius:2px}
+.av-pct{color:var(--text);font-weight:600;width:28px;text-align:right;flex-shrink:0;font-size:11px}
+
+/* Recent alerts */
+.ra-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px}
+.ra-item:last-child{border:none}
+.ra-time{color:var(--muted);font-family:monospace;font-size:10px;width:44px;flex-shrink:0}
+.ra-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;box-shadow:0 0 5px currentColor}
+.ra-text{color:rgba(200,190,255,.8)}
+
+/* System status */
+.ss-wrap{display:flex;align-items:center;gap:12px}
+.ss-ring-wrap{position:relative;width:60px;height:60px;flex-shrink:0}
+#ss-canvas{width:60px;height:60px}
+.ss-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--cyan)}
+.ss-info .ss-val{font-size:15px;font-weight:700;color:var(--cyan)}
+.ss-info .ss-label{font-size:10px;color:var(--muted);margin-top:2px}
+.ss-ok{font-size:11px;color:var(--green);display:flex;align-items:center;gap:5px;margin-top:6px}
+
+/* Tooltip */
+.tooltip{position:fixed;background:rgba(10,8,24,.96);border:1px solid rgba(139,92,246,.35);border-radius:10px;padding:12px 14px;font-size:11px;z-index:999;pointer-events:none;display:none;min-width:170px;backdrop-filter:blur(16px);box-shadow:0 8px 32px rgba(0,0,0,.5)}
+.tt-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.tt-row{display:flex;justify-content:space-between;gap:14px;padding:2px 0;font-size:11px}
+.tt-k{color:var(--muted)}.tt-v{color:var(--cyan);font-weight:600}
+</style>
+</head>
+<body>
+<div class="tooltip" id="tt"></div>
+
+<div class="app">
+
+<!-- ═══ SIDEBAR ═══ -->
+<div class="sidebar">
+  <div class="brand-wrap">
+    <div class="brand-icon">🌌</div>
+    <div class="brand-name">CYBER GALAXY</div>
+    <div class="brand-tag">SECURING TOMORROW</div>
+  </div>
+  <div class="nav">
+    <div class="nav-item active"><span class="ni">🏠</span>DASHBOARD</div>
+    <div class="nav-item"><span class="ni">⚠️</span>THREATS</div>
+    <div class="nav-item"><span class="ni">🔗</span>NETWORK</div>
+    <div class="nav-item"><span class="ni">📊</span>ANALYTICS</div>
+    <div class="nav-item"><span class="ni">📋</span>INCIDENTS</div>
+    <div class="nav-item"><span class="ni">💻</span>SYSTEMS</div>
+    <div class="nav-item"><span class="ni">📄</span>REPORTS</div>
+    <div class="nav-item"><span class="ni">⚙️</span>SETTINGS</div>
+  </div>
+  <div class="welcome-card">
+    <div class="wc-label">WELCOME BACK,</div>
+    <div class="wc-name">✦ Analyst <span class="wc-chevron">▾</span></div>
+  </div>
+  <div class="galactic-card">
+    <div class="gc-title"><span>GALACTIC ACTIVITY</span><span>···</span></div>
+    <div class="gc-mini-chart"><canvas id="mini-chart-canvas"></canvas></div>
+    <div class="gc-stats">
+      <div class="gc-stat"><div class="gl">✦ DATA FLOW</div><div class="gv">12.8 TB/s</div></div>
+      <div class="gc-stat"><div class="gl">✦ ACTIVE NODES</div><div class="gv">18,942</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TOPBAR ═══ -->
+<div class="topbar">
+  <div></div>
+  <div class="quote">
+    <div style="color:rgba(200,180,255,.7);font-style:italic;font-size:12px">"In the middle of every difficulty lies opportunity."</div>
+    <div style="color:rgba(150,130,220,.5);font-size:11px;margin-top:2px">— Albert Einstein</div>
+  </div>
+  <div class="top-right">
+    <div>
+      <div class="top-date" id="top-date">MAY 22, 2024</div>
+      <div style="display:flex;align-items:baseline;gap:4px">
+        <div class="top-time" id="top-time">10:24</div>
+        <div class="top-time-sub" id="top-secs">53</div>
+      </div>
+    </div>
+    <div class="notif-btn">🔔<div class="notif-dot"></div></div>
+  </div>
+</div>
+
+<!-- ═══ KPI ROW ═══ -->
+<div class="kpi-row">
+  <div class="kpi-card">
+    <div class="kpi-icon-wrap" style="background:rgba(236,72,153,.15)"><span>🪐</span></div>
+    <div>
+      <div class="kpi-label">Total Threats</div>
+      <div class="kpi-value">24,841</div>
+      <div class="kpi-change kpi-up">↑ 12.6%</div>
+    </div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-icon-wrap" style="background:rgba(6,182,212,.15)"><span>🛡️</span></div>
+    <div>
+      <div class="kpi-label">Blocked Attacks</div>
+      <div class="kpi-value">18,207</div>
+      <div class="kpi-change kpi-up">↑ 8.4%</div>
+    </div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-icon-wrap" style="background:rgba(139,92,246,.15)"><span>⚡</span></div>
+    <div>
+      <div class="kpi-label">Active Nodes</div>
+      <div class="kpi-value">18,942</div>
+      <div class="kpi-change kpi-up">↑ 5.7%</div>
+    </div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-icon-wrap" style="background:rgba(16,185,129,.15)"><span>🌿</span></div>
+    <div>
+      <div class="kpi-label">System Health</div>
+      <div class="kpi-value">98.7%</div>
+      <div class="kpi-change kpi-up">↑ 2.2%</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ GALAXY CENTER ═══ -->
+<div class="galaxy-center">
+  <canvas id="bg-canvas"></canvas>
+  <canvas id="line-canvas"></canvas>
+  <div id="planet-layer"></div>
+</div>
+
+<!-- ═══ BOTTOM CHART ═══ -->
+<div class="bottom-chart-wrap">
+  <div class="bc-header">
+    <div class="bc-title">Threat Overview</div>
+    <select class="bc-select"><option>This Week</option><option>This Month</option><option>This Year</option></select>
+  </div>
+  <canvas id="overview-canvas"></canvas>
+</div>
+
+<!-- ═══ RIGHT PANEL ═══ -->
+<div class="right-panel">
+
+  <!-- Threat Level Gauge -->
+  <div class="rp-box">
+    <div class="rp-title">THREAT LEVEL <span class="rpt-dots">···</span></div>
+    <div class="tl-gauge-wrap">
+      <canvas id="tl-canvas" width="90" height="90"></canvas>
+      <div class="tl-info">
+        <div class="tl-text">MODERATE</div>
+        <div class="tl-sub">Current threat status</div>
+      </div>
+    </div>
+    <div class="tl-legend">
+      <div class="tl-row"><div class="tl-dot" style="color:#FF6B6B;background:#FF6B6B"></div><span class="tl-label">CRITICAL</span><span class="tl-num">12</span></div>
+      <div class="tl-row"><div class="tl-dot" style="color:#FF9F43;background:#FF9F43"></div><span class="tl-label">HIGH</span><span class="tl-num">28</span></div>
+      <div class="tl-row"><div class="tl-dot" style="color:#FFE66D;background:#FFE66D"></div><span class="tl-label">MEDIUM</span><span class="tl-num">56</span></div>
+      <div class="tl-row"><div class="tl-dot" style="color:#10B981;background:#10B981"></div><span class="tl-label">LOW</span><span class="tl-num">128</span></div>
+    </div>
+  </div>
+
+  <!-- Top Attack Vectors -->
+  <div class="rp-box">
+    <div class="rp-title">TOP ATTACK VECTORS <span class="rpt-dots">···</span></div>
+    <div class="av-row"><span class="av-name">Brute Force</span><div class="av-track"><div class="av-fill" style="width:32%;background:#FF6B6B"></div></div><span class="av-pct">32%</span></div>
+    <div class="av-row"><span class="av-name">Phishing</span><div class="av-track"><div class="av-fill" style="width:24%;background:#FF9F43"></div></div><span class="av-pct">24%</span></div>
+    <div class="av-row"><span class="av-name">Malware</span><div class="av-track"><div class="av-fill" style="width:18%;background:#FFE66D"></div></div><span class="av-pct">18%</span></div>
+    <div class="av-row"><span class="av-name">SQL Injection</span><div class="av-track"><div class="av-fill" style="width:12%;background:#4ECDC4"></div></div><span class="av-pct">12%</span></div>
+    <div class="av-row"><span class="av-name">DDoS</span><div class="av-track"><div class="av-fill" style="width:8%;background:#A29BFE"></div></div><span class="av-pct">8%</span></div>
+  </div>
+
+  <!-- Recent Alerts -->
+  <div class="rp-box">
+    <div class="rp-title">RECENT ALERTS <span style="font-size:10px;color:var(--purple);cursor:pointer">VIEW ALL</span></div>
+    <div class="ra-item"><span class="ra-time">10:24 PM</span><span class="ra-dot" style="color:#FF6B6B;background:#FF6B6B"></span><span class="ra-text">Brute Force Attempt</span></div>
+    <div class="ra-item"><span class="ra-time">10:18 PM</span><span class="ra-dot" style="color:#FF6B6B;background:#FF6B6B"></span><span class="ra-text">Malware Detected</span></div>
+    <div class="ra-item"><span class="ra-time">10:15 PM</span><span class="ra-dot" style="color:#FFE66D;background:#FFE66D"></span><span class="ra-text">Unusual Login</span></div>
+    <div class="ra-item"><span class="ra-time">10:10 PM</span><span class="ra-dot" style="color:#10B981;background:#10B981"></span><span class="ra-text">Phishing Attempt Blocked</span></div>
+    <div class="ra-item"><span class="ra-time">10:05 PM</span><span class="ra-dot" style="color:#6B7280;background:#6B7280"></span><span class="ra-text">Vulnerability Scan</span></div>
+  </div>
+
+  <!-- System Status -->
+  <div class="rp-box">
+    <div class="rp-title">SYSTEM STATUS</div>
+    <div class="ss-wrap">
+      <div class="ss-ring-wrap">
+        <canvas id="ss-canvas" width="60" height="60"></canvas>
+        <div class="ss-pct">98.7%</div>
+      </div>
+      <div class="ss-info">
+        <div class="ss-val">98.7%</div>
+        <div class="ss-label">Overall health score</div>
+        <div class="ss-ok">✓ All systems operational</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+// ══ CLOCK ════════════════════════════════════════════════════
+function tick(){
+  const n=new Date();
+  let h=n.getHours(),m=n.getMinutes(),s=n.getSeconds();
+  const ap=h>=12?'PM':'AM';h=h%12||12;
+  document.getElementById('top-time').textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')} ${ap}`;
+  document.getElementById('top-secs').textContent=String(s).padStart(2,'0');
+  document.getElementById('top-date').textContent=n.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}).toUpperCase();
+}
+tick();setInterval(tick,1000);
+
+// ══ BG GALAXY CANVAS ═════════════════════════════════════════
+const bgC=document.getElementById('bg-canvas');
+const bgX=bgC.getContext('2d');
+let stars=[],t=0,shootingStars=[];
+
+function resizeBg(){
+  const gc=document.querySelector('.galaxy-center');
+  bgC.width=gc.offsetWidth;bgC.height=gc.offsetHeight;
+  document.getElementById('line-canvas').width=gc.offsetWidth;
+  document.getElementById('line-canvas').height=gc.offsetHeight;
+  buildStars();placePlanets();drawLines();
+}
+
+function buildStars(){
+  stars=[];
+  for(let i=0;i<600;i++){
+    const hue=[200,240,280,320][Math.floor(Math.random()*4)];
+    stars.push({
+      x:Math.random()*bgC.width,y:Math.random()*bgC.height,
+      r:Math.random()*1.6+.2,a:Math.random(),
+      sp:Math.random()*.025+.005,ph:Math.random()*Math.PI*2,
+      h:hue
+    });
+  }
+}
+
+function drawBg(){
+  t+=.005;
+  bgX.clearRect(0,0,bgC.width,bgC.height);
+  const cx=bgC.width/2,cy=bgC.height/2;
+
+  // Deep purple-blue background
+  const bg=bgX.createRadialGradient(cx,cy,0,cx,cy,Math.max(bgC.width,bgC.height)*.7);
+  bg.addColorStop(0,'rgba(40,20,80,.6)');
+  bg.addColorStop(.4,'rgba(20,10,50,.8)');
+  bg.addColorStop(1,'rgba(5,3,18,1)');
+  bgX.fillStyle=bg;bgX.fillRect(0,0,bgC.width,bgC.height);
+
+  // Nebula clouds (purple/blue atmospheric)
+  const nebulas=[
+    {x:cx*.5,y:cy*.6,r:220,c:'rgba(139,92,246,.07)'},
+    {x:cx*1.5,y:cy*.8,r:200,c:'rgba(6,182,212,.05)'},
+    {x:cx*.8,y:cy*1.4,r:180,c:'rgba(236,72,153,.04)'},
+    {x:cx*1.3,y:cy*.3,r:160,c:'rgba(139,92,246,.05)'},
+    {x:cx*.3,y:cy*1.2,r:150,c:'rgba(6,182,212,.04)'},
+  ];
+  nebulas.forEach(n=>{
+    const g=bgX.createRadialGradient(n.x,n.y,0,n.x,n.y,n.r);
+    g.addColorStop(0,n.c);g.addColorStop(1,'transparent');
+    bgX.fillStyle=g;bgX.beginPath();bgX.arc(n.x,n.y,n.r,0,Math.PI*2);bgX.fill();
+  });
+
+  // Stars
+  stars.forEach(s=>{
+    const a=.15+.85*Math.abs(Math.sin(t*s.sp*8+s.ph));
+    bgX.beginPath();bgX.arc(s.x,s.y,s.r,0,Math.PI*2);
+    bgX.fillStyle=`hsla(${s.h},80%,85%,${a*s.a})`;bgX.fill();
+    if(s.r>1.2){
+      bgX.beginPath();bgX.arc(s.x,s.y,s.r*3,0,Math.PI*2);
+      bgX.fillStyle=`hsla(${s.h},80%,85%,${a*.06})`;bgX.fill();
+    }
+  });
+
+  // Galaxy spiral
+  drawSpiral(cx,cy);
+
+  // Occasional shooting stars
+  if(Math.random()<.003){
+    shootingStars.push({x:Math.random()*bgC.width*.8+bgC.width*.1,y:Math.random()*bgC.height*.3,len:80,a:1,speed:8+Math.random()*6});
+  }
+  shootingStars=shootingStars.filter(ss=>{
+    ss.x-=ss.speed*.7;ss.y+=ss.speed*.4;ss.a-=.04;
+    if(ss.a<=0) return false;
+    bgX.beginPath();bgX.moveTo(ss.x,ss.y);bgX.lineTo(ss.x+ss.len,ss.y-ss.len*.5);
+    const sg=bgX.createLinearGradient(ss.x,ss.y,ss.x+ss.len,ss.y-ss.len*.5);
+    sg.addColorStop(0,`rgba(255,255,255,${ss.a})`);sg.addColorStop(1,'transparent');
+    bgX.strokeStyle=sg;bgX.lineWidth=1.5;bgX.stroke();
+    return true;
+  });
+
+  requestAnimationFrame(drawBg);
+}
+
+function drawSpiral(cx,cy){
+  const maxR=Math.min(bgC.width,bgC.height)*.38;
+  // Spiral arm particles
+  for(let arm=0;arm<4;arm++){
+    const base=(arm/4)*Math.PI*2;
+    for(let i=0;i<180;i++){
+      const frac=i/180;
+      const r=frac*maxR;
+      const angle=base+frac*Math.PI*5+t*.08;
+      const x=cx+Math.cos(angle)*r;
+      const y=cy+Math.sin(angle)*r;
+      const alpha=(1-frac)*.5;
+      const size=Math.max(.3,(1-frac)*2.2);
+      const colors=['180,130,255','100,200,255','220,140,255','80,180,255'];
+      bgX.beginPath();bgX.arc(x,y,size,0,Math.PI*2);
+      bgX.fillStyle=`rgba(${colors[arm%4]},${alpha})`;bgX.fill();
+    }
+  }
+
+  // Bright glowing core with shield icon
+  const cg=bgX.createRadialGradient(cx,cy,0,cx,cy,90);
+  cg.addColorStop(0,'rgba(255,255,255,.95)');
+  cg.addColorStop(.05,'rgba(220,200,255,.9)');
+  cg.addColorStop(.15,'rgba(160,100,255,.7)');
+  cg.addColorStop(.4,'rgba(80,40,180,.3)');
+  cg.addColorStop(.7,'rgba(40,20,100,.1)');
+  cg.addColorStop(1,'transparent');
+  bgX.fillStyle=cg;bgX.beginPath();bgX.arc(cx,cy,90,0,Math.PI*2);bgX.fill();
+
+  // Core rings
+  [.4,.65,.9].forEach((f,i)=>{
+    const pr=40+Math.sin(t*(1+i*.3))*5;
+    bgX.beginPath();bgX.arc(cx,cy,pr*f*2.5,0,Math.PI*2);
+    bgX.strokeStyle=`rgba(200,170,255,${.12-i*.03})`;bgX.lineWidth=1;bgX.stroke();
+  });
+
+  // Shield icon at core
+  bgX.font='bold 28px serif';bgX.textAlign='center';bgX.textBaseline='middle';
+  bgX.fillStyle='rgba(255,255,255,.6)';bgX.fillText('🛡️',cx,cy);
+}
+
+// ══ PLANETS ══════════════════════════════════════════════════
+const PLANETS=[
+  {label:'Network Security',sub:'899 Nodes',icon:'🔐',color:'#A29BFE',glow:'rgba(162,155,254,.5)',
+   left:'32%',top:'22%',size:58,orbit1:80,orbit2:65,spd:9,
+   info:{Type:'Network Security',Nodes:899,Threats:12,Status:'Active',Shield:'94%'}},
+  {label:'Cloud Security',sub:'1,234 Nodes',icon:'☁️',color:'#06B6D4',glow:'rgba(6,182,212,.5)',
+   left:'68%',top:'18%',size:56,orbit1:76,orbit2:60,spd:11,
+   info:{Type:'Cloud Security',Nodes:'1,234',Threats:5,Status:'Active',Shield:'98%'}},
+  {label:'Application Security',sub:'1,764 Nodes',icon:'⚡',color:'#8B5CF6',glow:'rgba(139,92,246,.5)',
+   left:'20%',top:'48%',size:54,orbit1:74,orbit2:58,spd:10,
+   info:{Type:'App Security',Nodes:'1,764',Threats:18,Status:'Active',Shield:'89%'}},
+  {label:'Data Protection',sub:'3,247 Nodes',icon:'🗄️',color:'#F59E0B',glow:'rgba(245,158,11,.5)',
+   left:'44%',top:'68%',size:62,orbit1:88,orbit2:70,spd:7,
+   info:{Type:'Data Protection',Nodes:'3,247',Threats:8,Status:'Active',Shield:'91%'}},
+  {label:'Endpoint Security',sub:'2,453 Nodes',icon:'💻',color:'#10B981',glow:'rgba(16,185,129,.5)',
+   left:'72%',top:'52%',size:58,orbit1:82,orbit2:64,spd:8,
+   info:{Type:'Endpoint Security',Nodes:'2,453',Threats:23,Status:'Active',Shield:'88%'}},
+  {label:'Threat Intelligence',sub:'1,987 Nodes',icon:'🧠',color:'#EC4899',glow:'rgba(236,72,153,.5)',
+   left:'60%',top:'72%',size:55,orbit1:76,orbit2:60,spd:12,
+   info:{Type:'Threat Intel',Nodes:'1,987',Threats:47,Status:'Alert',Shield:'78%'}},
+];
+
+function placePlanets(){
+  const layer=document.getElementById('planet-layer');
+  layer.innerHTML='';
+  PLANETS.forEach((p,idx)=>{
+    const wrap=document.createElement('div');
+    wrap.className='planet-node';
+    wrap.style.cssText=`left:${p.left};top:${p.top}`;
+
+    const sphere=document.createElement('div');
+    sphere.className='pn-sphere';
+    sphere.style.cssText=`width:${p.size}px;height:${p.size}px;background:radial-gradient(circle at 35% 30%,${p.color}ee,${p.color}88 50%,${p.color}33);box-shadow:0 0 ${p.size*.5}px ${p.glow},0 0 ${p.size}px ${p.glow.replace('.5','.15')},inset 0 0 ${p.size*.3}px rgba(255,255,255,.12)`;
+
+    // Orbit rings
+    [p.orbit1,p.orbit2].forEach((or,oi)=>{
+      const ring=document.createElement('div');
+      ring.className='pn-orbit';
+      ring.style.cssText=`width:${or}px;height:${or*.35}px;margin-left:-${or/2}px;margin-top:-${or*.175}px;animation-duration:${p.spd+(oi*3)}s;border-color:${p.color}35;transform:translate(0,0) rotateX(70deg)`;
+      sphere.appendChild(ring);
+    });
+
+    sphere.innerHTML+=`<span style="font-size:${p.size*.35}px;position:relative;z-index:2">${p.icon}</span>`;
+
+    const lbl=document.createElement('div');lbl.className='pn-label';lbl.textContent=p.label;
+    const cnt=document.createElement('div');cnt.className='pn-count';cnt.textContent=p.sub;
+
+    wrap.appendChild(sphere);wrap.appendChild(lbl);wrap.appendChild(cnt);
+    layer.appendChild(wrap);
+
+    wrap.addEventListener('mouseenter',e=>showTT(e,p));
+    wrap.addEventListener('mousemove',moveTT);
+    wrap.addEventListener('mouseleave',hideTT);
+  });
+}
+
+function drawLines(){
+  const lc=document.getElementById('line-canvas');
+  const lx=lc.getContext('2d');
+  lx.clearRect(0,0,lc.width,lc.height);
+  const cx=lc.width/2,cy=lc.height/2;
+  PLANETS.forEach(p=>{
+    const px=parseFloat(p.left)/100*lc.width;
+    const py=parseFloat(p.top)/100*lc.height;
+    const g=lx.createLinearGradient(cx,cy,px,py);
+    g.addColorStop(0,'rgba(255,255,255,.05)');
+    g.addColorStop(.5,`${p.color}20`);
+    g.addColorStop(1,`${p.color}40`);
+    lx.beginPath();lx.moveTo(cx,cy);lx.lineTo(px,py);
+    lx.strokeStyle=g;lx.lineWidth=1;lx.setLineDash([3,8]);lx.stroke();lx.setLineDash([]);
+    // Dot at planet
+    lx.beginPath();lx.arc(px,py,3,0,Math.PI*2);
+    lx.fillStyle=p.color+'80';lx.fill();
+    // Dot at center
+    lx.beginPath();lx.arc(cx,cy,2,0,Math.PI*2);
+    lx.fillStyle='rgba(255,255,255,.3)';lx.fill();
+  });
+}
+
+// Tooltip
+function showTT(e,p){
+  const tt=document.getElementById('tt');
+  tt.innerHTML=`<div class="tt-title">${p.label}</div>${Object.entries(p.info).map(([k,v])=>`<div class="tt-row"><span class="tt-k">${k}</span><span class="tt-v">${v}</span></div>`).join('')}`;
+  tt.style.display='block';moveTT(e);
+}
+function moveTT(e){
+  const tt=document.getElementById('tt');
+  tt.style.left=Math.min(e.clientX+16,window.innerWidth-190)+'px';
+  tt.style.top=Math.min(e.clientY-10,window.innerHeight-220)+'px';
+}
+function hideTT(){document.getElementById('tt').style.display='none'}
+
+// ══ MINI CHART ═══════════════════════════════════════════════
+function drawMiniChart(){
+  const c=document.getElementById('mini-chart-canvas');
+  c.width=c.offsetWidth||200;c.height=40;
+  const ctx=c.getContext('2d');
+  const pts=[12,18,14,22,16,28,20,25,18,30,22,19,26,23,28];
+  const W=c.width,H=c.height;
+  const step=W/(pts.length-1);
+  const max=Math.max(...pts),min=Math.min(...pts);
+
+  // Fill
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'rgba(139,92,246,.4)');g.addColorStop(1,'rgba(139,92,246,.02)');
+  ctx.beginPath();
+  pts.forEach((v,i)=>{const x=i*step;const y=H-(v-min)/(max-min)*H*.8-H*.1;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});
+  ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fillStyle=g;ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  pts.forEach((v,i)=>{const x=i*step;const y=H-(v-min)/(max-min)*H*.8-H*.1;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});
+  const lg=ctx.createLinearGradient(0,0,W,0);
+  lg.addColorStop(0,'#8B5CF6');lg.addColorStop(1,'#06B6D4');
+  ctx.strokeStyle=lg;ctx.lineWidth=2;ctx.stroke();
+}
+
+// ══ OVERVIEW CHART ════════════════════════════════════════════
+function drawOverview(){
+  const c=document.getElementById('overview-canvas');
+  c.width=c.offsetWidth||600;c.height=70;
+  const ctx=c.getContext('2d');
+  const days=['MON','TUE','WED','THU','FRI','SAT','SUN'];
+  const d1=[4000,6000,5000,8000,7000,5500,9000];
+  const d2=[2000,4000,3000,6000,5000,3500,7000];
+  const W=c.width,H=c.height-20;
+  const step=W/(days.length-1);
+  const max=Math.max(...d1);
+
+  // Wave 1 (purple)
+  const g1=ctx.createLinearGradient(0,0,0,H);
+  g1.addColorStop(0,'rgba(139,92,246,.35)');g1.addColorStop(1,'rgba(139,92,246,.02)');
+  ctx.beginPath();
+  d1.forEach((v,i)=>{const x=i*step;const y=H-(v/max)*H*.85;i===0?ctx.moveTo(x,y):ctx.bezierCurveTo(x-step*.5,H-(d1[Math.max(0,i-1)]/max)*H*.85,x-step*.5,y,x,y)});
+  ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fillStyle=g1;ctx.fill();
+  ctx.beginPath();
+  d1.forEach((v,i)=>{const x=i*step;const y=H-(v/max)*H*.85;i===0?ctx.moveTo(x,y):ctx.bezierCurveTo(x-step*.5,H-(d1[Math.max(0,i-1)]/max)*H*.85,x-step*.5,y,x,y)});
+  ctx.strokeStyle='#8B5CF6';ctx.lineWidth=2;ctx.stroke();
+
+  // Wave 2 (cyan)
+  const g2=ctx.createLinearGradient(0,0,0,H);
+  g2.addColorStop(0,'rgba(6,182,212,.25)');g2.addColorStop(1,'rgba(6,182,212,.02)');
+  ctx.beginPath();
+  d2.forEach((v,i)=>{const x=i*step;const y=H-(v/max)*H*.85;i===0?ctx.moveTo(x,y):ctx.bezierCurveTo(x-step*.5,H-(d2[Math.max(0,i-1)]/max)*H*.85,x-step*.5,y,x,y)});
+  ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fillStyle=g2;ctx.fill();
+  ctx.beginPath();
+  d2.forEach((v,i)=>{const x=i*step;const y=H-(v/max)*H*.85;i===0?ctx.moveTo(x,y):ctx.bezierCurveTo(x-step*.5,H-(d2[Math.max(0,i-1)]/max)*H*.85,x-step*.5,y,x,y)});
+  ctx.strokeStyle='#06B6D4';ctx.lineWidth=2;ctx.stroke();
+
+  // Y labels
+  ctx.fillStyle='rgba(107,114,128,.6)';ctx.font='9px sans-serif';ctx.textAlign='left';
+  ['12k','8k','4k','0'].forEach((l,i)=>{ctx.fillText(l,0,H*(i/3)+6)});
+
+  // X labels
+  ctx.textAlign='center';
+  days.forEach((d,i)=>{ctx.fillText(d,i*step,H+14)});
+}
+
+// ══ THREAT GAUGE ══════════════════════════════════════════════
+function drawThreatGauge(){
+  const c=document.getElementById('tl-canvas');
+  const ctx=c.getContext('2d');
+  const cx=45,cy=50,r=38;
+  ctx.clearRect(0,0,90,90);
+  // Arc background
+  ctx.beginPath();ctx.arc(cx,cy,r,Math.PI*.75,Math.PI*2.25);
+  ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=8;ctx.lineCap='round';ctx.stroke();
+  // Gradient arc (moderate = ~55%)
+  const ga=ctx.createLinearGradient(0,0,90,0);
+  ga.addColorStop(0,'#10B981');ga.addColorStop(.5,'#FFE66D');ga.addColorStop(1,'#FF6B6B');
+  ctx.beginPath();ctx.arc(cx,cy,r,Math.PI*.75,Math.PI*.75+Math.PI*1.5*.55);
+  ctx.strokeStyle=ga;ctx.lineWidth=8;ctx.lineCap='round';ctx.stroke();
+  // Needle dot
+  const needleAngle=Math.PI*.75+Math.PI*1.5*.55;
+  ctx.beginPath();ctx.arc(cx+Math.cos(needleAngle)*r,cy+Math.sin(needleAngle)*r,5,0,Math.PI*2);
+  ctx.fillStyle='#FFE66D';ctx.fill();
+}
+
+// ══ SYSTEM STATUS RING ════════════════════════════════════════
+function drawSSRing(){
+  const c=document.getElementById('ss-canvas');
+  const ctx=c.getContext('2d');
+  const cx=30,cy=30,r=24;
+  ctx.clearRect(0,0,60,60);
+  ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.strokeStyle='rgba(6,182,212,.12)';ctx.lineWidth=5;ctx.stroke();
+  ctx.beginPath();ctx.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+Math.PI*2*.987);
+  const g=ctx.createLinearGradient(0,0,60,0);
+  g.addColorStop(0,'#06B6D4');g.addColorStop(1,'#8B5CF6');
+  ctx.strokeStyle=g;ctx.lineWidth=5;ctx.lineCap='round';ctx.stroke();
+}
+
+// ══ INIT ═════════════════════════════════════════════════════
+window.addEventListener('load',()=>{
+  resizeBg();
+  drawBg();
+  setTimeout(()=>{drawMiniChart();drawOverview();drawThreatGauge();drawSSRing();},100);
+});
+window.addEventListener('resize',()=>{resizeBg();setTimeout(()=>{drawMiniChart();drawOverview();},100)});
+</script>
+</body>
+</html>

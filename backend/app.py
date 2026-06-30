@@ -220,6 +220,10 @@ def severity_dist():
 def history():
     return jsonify({"history": chat_history[-20:]})
 
+@app.route('/galaxy')
+def galaxy():
+    return send_from_directory(os.path.join(BASE_DIR, 'frontend'), 'galaxy.html')
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5002))
     print(f"\nSentinel SOC on http://localhost:{port}")
