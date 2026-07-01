@@ -3,2270 +3,437 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sentinel SOC</title>
+<title>SOC Assistant</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --bg:#0D1321;
-  --card:#1D2D44;
-  --card2:#243550;
-  --border:#2a3f5f;
-  --primary:#FF6B6B;
-  --accent:#4ECDC4;
-  --yellow:#FFE66D;
-  --text:#F8FAFC;
-  --muted:#8899AA;
-  --success:#10B981;
-  --warning:#FF9F43;
-  --danger:#FF6B6B;
-  --purple:#A29BFE;
-  --pink:#FD79A8;
-  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-  --mono:'SF Mono','Fira Code',monospace;
-  --r:8px;--r2:12px;--r3:16px;
-  --s1:0 1px 3px rgba(0,0,0,.3);
-  --s2:0 4px 16px rgba(0,0,0,.4);
-  --s3:0 8px 32px rgba(0,0,0,.5);
-}
-body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#0a0e1a; color:#e2e8f0; height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+.topbar { background:#0f1629; border-bottom:1px solid #1e2d4a; padding:10px 24px; display:flex; align-items:center; gap:12px; flex-shrink:0; }
+.topbar h1 { font-size:18px; font-weight:700; color:#38bdf8; }
+.topbar .sub { font-size:12px; color:#475569; }
+.status-dot { width:8px; height:8px; border-radius:50%; background:#22c55e; box-shadow:0 0 6px #22c55e; animation:pulse 2s infinite; }
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.nav-tabs { display:flex; gap:4px; margin-left:auto; margin-right:12px; }
+.nav-tab { padding:5px 14px; border-radius:6px; font-size:12px; font-weight:500; cursor:pointer; border:none; background:transparent; color:#475569; transition:all 0.15s; }
+.nav-tab:hover { background:#1e2d4a; color:#e2e8f0; }
+.nav-tab.active { background:#1e3a5f; color:#38bdf8; }
+.page { display:none; flex:1; overflow:hidden; min-height:0; }
+.page.active { display:flex; }
 
-/* ── TOPBAR ── */
-.topbar{background:var(--card);border-bottom:1px solid var(--border);height:52px;padding:0 20px;display:flex;align-items:center;gap:16px;flex-shrink:0;z-index:200}
-.logo{display:flex;align-items:center;gap:10px;min-width:200px}
-.logo-icon{width:30px;height:30px;border-radius:var(--r);background:linear-gradient(135deg,var(--primary),var(--purple));display:flex;align-items:center;justify-content:center;font-size:15px}
-.logo-name{font-size:16px;font-weight:800;color:var(--text);letter-spacing:-.3px}
-.logo-name span{color:var(--accent)}
-.search-bar{flex:1;max-width:480px;position:relative}
-.search-bar input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);padding:8px 16px 8px 36px;color:var(--text);font-size:13px;outline:none;transition:border-color .2s}
-.search-bar input:focus{border-color:var(--accent)}
-.search-bar .si{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px}
-.topbar-right{display:flex;align-items:center;gap:12px;margin-left:auto}
-.tb-btn{width:34px;height:34px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:14px;position:relative;transition:all .2s}
-.tb-btn:hover{border-color:var(--accent);color:var(--accent)}
-.notif-dot{position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:var(--primary);border:2px solid var(--card)}
-.admin-pill{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:4px 12px 4px 4px;cursor:pointer;transition:all .2s}
-.admin-pill:hover{border-color:var(--accent)}
-.admin-avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--purple));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
-.admin-name{font-size:12px;font-weight:600;color:var(--text)}
-
-/* ── LAYOUT ── */
-.app-body{display:flex;flex:1;overflow:hidden}
-
-/* ── SIDEBAR ── */
-.sidebar{width:200px;flex-shrink:0;background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
-.sidebar-nav{flex:1;overflow-y:auto;padding:12px 8px}
-.sidebar-nav::-webkit-scrollbar{width:3px}
-.sidebar-nav::-webkit-scrollbar-thumb{background:var(--border)}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r);cursor:pointer;color:var(--muted);font-size:13px;font-weight:500;transition:all .18s;margin-bottom:2px}
-.nav-item:hover{background:var(--card2);color:var(--text)}
-.nav-item.active{background:linear-gradient(135deg,rgba(255,107,107,.15),rgba(78,205,196,.08));color:var(--primary);border:1px solid rgba(255,107,107,.2)}
-.nav-item .ni{font-size:15px;width:20px;text-align:center;flex-shrink:0}
-.nav-section{font-size:10px;font-weight:700;color:var(--border);text-transform:uppercase;letter-spacing:.8px;padding:12px 12px 6px;margin-top:4px}
-.sidebar-footer{padding:12px;border-top:1px solid var(--border)}
-.sys-status{background:var(--bg);border-radius:var(--r);padding:10px 12px}
-.sys-status-title{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
-.sys-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--success);box-shadow:0 0 5px var(--success);margin-right:5px}
-.sys-label{font-size:11px;color:var(--success)}
-.sys-uptime{font-size:11px;color:var(--muted);margin-top:4px}
-
-/* ── PAGES ── */
-.page{display:none;flex:1;overflow:hidden;min-height:0}
-.page.active{display:flex;flex-direction:column}
-
-/* ── PAGE HEADER ── */
-.page-header{padding:16px 24px 12px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
-.page-title{font-size:18px;font-weight:700;color:var(--text)}
-.page-sub{font-size:12px;color:var(--muted);margin-top:2px}
-.page-actions{display:flex;gap:8px}
-.btn{padding:7px 16px;border-radius:var(--r);font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .2s}
-.btn-primary{background:var(--primary);color:white}
-.btn-primary:hover{opacity:.85;transform:translateY(-1px)}
-.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted)}
-.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
-
-/* ── SCROLLABLE CONTENT ── */
-.page-content{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:20px}
-.page-content::-webkit-scrollbar{width:4px}
-.page-content::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-
-/* ── CARDS ── */
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r3);padding:16px;box-shadow:var(--s1)}
-.card-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
-.card-title .ct-left{display:flex;align-items:center;gap:8px}
-.view-all{font-size:11px;color:var(--accent);cursor:pointer;font-weight:500;transition:opacity .15s}
-.view-all:hover{opacity:.7}
-
-/* ── KPI CARDS ── */
-.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
-.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r3);padding:16px;display:flex;align-items:flex-start;gap:12px;transition:all .2s;cursor:default}
-.kpi-card:hover{border-color:var(--accent);box-shadow:0 4px 20px rgba(78,205,196,.1);transform:translateY(-1px)}
-.kpi-icon{width:40px;height:40px;border-radius:var(--r2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.kpi-label{font-size:11px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
-.kpi-value{font-size:24px;font-weight:800;color:var(--text);line-height:1;margin-bottom:4px}
-.kpi-change{font-size:11px;font-weight:600}
-.kpi-change.up{color:var(--primary)}
-.kpi-change.down{color:var(--accent)}
-.kpi-vs{font-size:10px;color:var(--muted);margin-left:4px}
-
-/* ── CHARTS ROW ── */
-.charts-row{display:grid;grid-template-columns:1fr 280px;gap:14px}
-.chart-area{position:relative;height:160px;margin-top:8px}
-canvas{width:100%!important}
-
-/* ── ALERTS TABLE ── */
-.alerts-table{width:100%;border-collapse:collapse;font-size:12px}
-.alerts-table th{text-align:left;padding:8px 10px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
-.alerts-table td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
-.alerts-table tr:hover td{background:rgba(255,255,255,.02)}
-.alerts-table tr:last-child td{border:none}
-
-/* ── SEVERITY BADGES ── */
-.badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.3px}
-.badge-critical{background:rgba(255,107,107,.15);color:var(--primary);border:1px solid rgba(255,107,107,.3)}
-.badge-high{background:rgba(255,159,67,.15);color:var(--warning);border:1px solid rgba(255,159,67,.3)}
-.badge-medium{background:rgba(255,230,109,.15);color:var(--yellow);border:1px solid rgba(255,230,109,.3)}
-.badge-low{background:rgba(78,205,196,.15);color:var(--accent);border:1px solid rgba(78,205,196,.3)}
-
-/* Status badges */
-.status-badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px}
-.status-inprogress{background:rgba(255,107,107,.1);color:var(--primary)}
-.status-investigating{background:rgba(255,230,109,.1);color:var(--yellow)}
-.status-resolved{background:rgba(16,185,129,.1);color:var(--success)}
-
-/* ── ALERT FEED ── */
-.alert-feed-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04)}
-.alert-feed-item:last-child{border:none}
-.alert-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
-.alert-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:2px}
-.alert-meta{font-size:11px;color:var(--muted)}
-.alert-time{font-size:11px;color:var(--muted);margin-left:auto;flex-shrink:0;white-space:nowrap}
-
-/* ── ATTACK TYPES ── */
-.attack-item{display:flex;align-items:center;gap:10px;padding:6px 0}
-.attack-name{font-size:12px;color:var(--text);width:100px;flex-shrink:0;font-weight:500}
-.attack-bar-wrap{flex:1;background:rgba(255,255,255,.06);border-radius:3px;height:6px;overflow:hidden}
-.attack-bar{height:100%;border-radius:3px;transition:width .8s ease}
-.attack-count{font-size:12px;color:var(--muted);width:36px;text-align:right;flex-shrink:0;font-weight:500}
-
-/* ── DONUT CHART ── */
-.donut-wrap{position:relative;width:130px;height:130px;margin:0 auto 12px}
-.donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.donut-total{font-size:22px;font-weight:800;color:var(--text)}
-.donut-label{font-size:10px;color:var(--muted);font-weight:500}
-.donut-legend{display:flex;flex-direction:column;gap:6px}
-.donut-legend-item{display:flex;align-items:center;gap:8px;font-size:11px}
-.dl-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.dl-label{color:var(--muted);flex:1}
-.dl-count{color:var(--text);font-weight:600}
-.dl-pct{color:var(--muted)}
-
-/* ── SYSTEM HEALTH ── */
-.health-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.health-item{display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:var(--r);padding:10px}
-.health-icon{font-size:16px}
-.health-name{font-size:12px;font-weight:600;color:var(--text)}
-.health-status{font-size:10px;font-weight:600}
-.health-status.op{color:var(--success)}
-.health-status.deg{color:var(--warning)}
-
-/* ── ACTIVE THREATS ── */
-.threat-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)}
-.threat-item:last-child{border:none}
-.threat-name{font-size:13px;color:var(--text);flex:1;font-weight:500}
-.threat-count{font-size:13px;font-weight:700;color:var(--text)}
-.threat-delta{font-size:11px;font-weight:600;margin-left:4px}
-.threat-delta.up{color:var(--primary)}
-.threat-delta.dn{color:var(--accent)}
-
-/* ── CHAT PAGE ── */
-.chat-layout{display:flex;flex:1;overflow:hidden}
-.chat-main{display:flex;flex-direction:column;flex:1;overflow:hidden;background:var(--bg)}
-.chat-msgs{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px}
-.chat-msgs::-webkit-scrollbar{width:4px}
-.chat-msgs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-.msg-row{display:flex;gap:10px;max-width:82%;animation:msgIn .3s ease}
-@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.msg-row.user{align-self:flex-end;flex-direction:row-reverse}
-.msg-row.assistant{align-self:flex-start}
-.msg-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:2px}
-.msg-row.user .msg-avatar{background:linear-gradient(135deg,var(--primary),var(--purple))}
-.msg-row.assistant .msg-avatar{background:var(--card);border:1px solid var(--border)}
-.msg-bubble{padding:12px 16px;border-radius:16px;font-size:13px;line-height:1.65;word-break:break-word;max-width:100%}
-.msg-row.user .msg-bubble{background:linear-gradient(135deg,var(--primary),var(--purple));color:white;border-bottom-right-radius:4px}
-.msg-row.assistant .msg-bubble{background:var(--card);color:var(--text);border:1px solid var(--border);border-bottom-left-radius:4px}
-.msg-meta{font-size:10px;color:var(--muted);margin-top:4px;padding:0 4px}
-.msg-row.user .msg-meta{text-align:right}
-.sev-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;margin-bottom:8px}
-.sev-critical{background:rgba(255,107,107,.15);color:var(--primary);border:1px solid rgba(255,107,107,.3)}
-.sev-high{background:rgba(255,159,67,.15);color:var(--warning);border:1px solid rgba(255,159,67,.3)}
-.sev-medium{background:rgba(255,230,109,.15);color:var(--yellow);border:1px solid rgba(255,230,109,.3)}
-.sev-low{background:rgba(78,205,196,.15);color:var(--accent);border:1px solid rgba(78,205,196,.3)}
-.typing{display:none;align-items:center;gap:10px;padding:0 20px 10px}
-.typing.on{display:flex}
-.typing-bubble{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:10px 16px;display:flex;gap:4px}
-.tdot{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:td 1.2s infinite}
-.tdot:nth-child(2){animation-delay:.2s}.tdot:nth-child(3){animation-delay:.4s}
-@keyframes td{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-4px);opacity:1}}
-.chat-input-area{padding:14px 20px 16px;background:var(--card);border-top:1px solid var(--border);flex-shrink:0}
-.quick-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
-.qbtn{font-size:12px;padding:5px 12px;background:var(--bg);border:1px solid var(--border);border-radius:20px;cursor:pointer;color:var(--muted);transition:all .15s;font-weight:500}
-.qbtn:hover{background:var(--primary);color:white;border-color:var(--primary);transform:translateY(-1px)}
-.input-row{display:flex;gap:10px;align-items:center}
-.chat-input{flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r2);padding:11px 16px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:all .2s}
-.chat-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(78,205,196,.1)}
-.send-btn{width:42px;height:42px;border-radius:var(--r2);background:linear-gradient(135deg,var(--primary),var(--purple));border:none;cursor:pointer;font-size:17px;color:white;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
-.send-btn:hover{transform:translateY(-1px);opacity:.9}
-.chat-sidebar{width:260px;flex-shrink:0;border-left:1px solid var(--border);background:var(--card);overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
-.chat-sidebar::-webkit-scrollbar{width:3px}
-.chat-sidebar::-webkit-scrollbar-thumb{background:var(--border)}
-.s-title{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
+/* ---- CHAT PAGE ---- */
+.chat-section { display:flex; flex-direction:column; flex:1; border-right:1px solid #1e2d4a; overflow:hidden; }
+.chat-messages { flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:14px; }
+.chat-messages::-webkit-scrollbar{width:4px}
+.chat-messages::-webkit-scrollbar-thumb{background:#1e2d4a;border-radius:2px}
+.msg { max-width:85%; padding:12px 16px; border-radius:12px; font-size:13px; line-height:1.6; }
+.msg.user { background:#1e3a5f; color:#bfdbfe; align-self:flex-end; border-bottom-right-radius:4px; }
+.msg.assistant { background:#0f1629; border:1px solid #1e2d4a; align-self:flex-start; border-bottom-left-radius:4px; width:90%; }
+.severity-badge { display:inline-block; padding:2px 10px; border-radius:12px; font-size:11px; font-weight:600; margin-bottom:8px; }
+.sev-critical{background:#450a0a;color:#f87171}
+.sev-high{background:#431407;color:#fb923c}
+.sev-medium{background:#451a03;color:#fbbf24}
+.sev-low{background:#052e16;color:#4ade80}
+.chat-input-area { padding:12px 16px; border-top:1px solid #1e2d4a; background:#0f1629; flex-shrink:0; }
+.quick-btns { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+.quick-btn { font-size:11px; padding:4px 10px; background:#1e2d4a; color:#94a3b8; border:none; border-radius:20px; cursor:pointer; }
+.quick-btn:hover{background:#1e3a5f;color:#bfdbfe}
+.input-row { display:flex; gap:8px; }
+.chat-input { flex:1; background:#0a0e1a; border:1px solid #1e2d4a; border-radius:8px; padding:10px 14px; color:#e2e8f0; font-size:13px; outline:none; }
+.chat-input:focus{border-color:#38bdf8}
+.send-btn { background:#38bdf8; color:#0a0e1a; border:none; border-radius:8px; padding:10px 20px; font-weight:700; cursor:pointer; }
+.send-btn:hover{background:#0ea5e9}
+.sidebar { overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px; width:300px; flex-shrink:0; }
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-thumb{background:#1e2d4a;border-radius:2px}
+.sidebar-card { background:#0f1629; border:1px solid #1e2d4a; border-radius:10px; padding:14px; }
+.sidebar-title { font-size:11px; font-weight:600; color:#475569; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px; }
+.indicator-input,.log-textarea { width:100%; background:#0a0e1a; border:1px solid #1e2d4a; border-radius:6px; padding:8px 10px; color:#e2e8f0; font-family:monospace; font-size:12px; outline:none; margin-bottom:8px; }
+.indicator-input:focus,.log-textarea:focus{border-color:#38bdf8}
+.check-btn { width:100%; background:#1e3a5f; color:#38bdf8; border:1px solid #1e4a7f; border-radius:6px; padding:8px; font-size:12px; font-weight:600; cursor:pointer; margin-bottom:6px; }
+.check-btn:hover{background:#1e4a7f}
+.result-box { margin-top:10px; padding:10px; border-radius:6px; font-size:12px; display:none; }
+.result-box.malicious{background:#1c0a0a;border:1px solid #7f1d1d}
+.result-box.suspicious{background:#1c1208;border:1px solid #78350f}
+.result-box.clean{background:#081c0e;border:1px solid #14532d}
+.result-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+.result-row:last-child{border:none}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.stat-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);padding:12px;text-align:center;transition:all .2s}
-.stat-card:hover{border-color:var(--accent);transform:translateY(-1px)}
+.stat-box{background:#0a0e1a;border-radius:6px;padding:10px;text-align:center}
 .stat-num{font-size:22px;font-weight:700}
-.stat-lbl{font-size:10px;color:var(--muted);margin-top:2px;font-weight:500}
-.ioc-input{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-size:12px;font-family:var(--mono);background:var(--bg);color:var(--text);outline:none;margin-bottom:8px;transition:border-color .2s}
-.ioc-input:focus{border-color:var(--accent)}
-.btn-accent{width:100%;padding:9px;background:linear-gradient(135deg,var(--accent),var(--purple));color:white;border:none;border-radius:var(--r);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
-.btn-accent:hover{transform:translateY(-1px);opacity:.9}
-.ioc-result{display:none;padding:12px;border-radius:var(--r2);border:1px solid var(--border);margin-top:8px;font-size:12px;background:var(--bg)}
-.ioc-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04)}
-.ioc-row:last-child{border:none}
-.rec-item{font-size:12px;color:var(--muted);padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);line-height:1.5;display:flex;gap:6px}
+.stat-label{font-size:10px;color:#475569;margin-top:2px}
+.rec-item{font-size:12px;color:#94a3b8;padding:4px 0;border-bottom:1px solid #1e2d4a;line-height:1.5}
 .rec-item:last-child{border:none}
+.thinking{display:none;align-items:center;gap:8px;color:#475569;font-size:13px;padding:4px 20px 8px;flex-shrink:0}
+.dot-pulse{display:flex;gap:4px}
+.dot-pulse span{width:6px;height:6px;border-radius:50%;background:#38bdf8;animation:dotpulse 1.2s infinite}
+.dot-pulse span:nth-child(2){animation-delay:0.2s}
+.dot-pulse span:nth-child(3){animation-delay:0.4s}
+@keyframes dotpulse{0%,100%{opacity:0.3}50%{opacity:1}}
 
-/* ── TWO COL PAGES ── */
-.two-col{display:flex;flex:1;overflow:hidden}
-.lp{flex-shrink:0;border-right:1px solid var(--border);background:var(--card);overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px}
-.lp::-webkit-scrollbar{width:3px}
-.lp::-webkit-scrollbar-thumb{background:var(--border)}
-.rp{flex:1;background:var(--bg);overflow-y:auto;padding:24px}
-.rp::-webkit-scrollbar{width:4px}
-.rp::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-.p-title{font-size:15px;font-weight:700;color:var(--text)}
-.p-sub{font-size:12px;color:var(--muted);line-height:1.6}
-.field{width:100%;padding:10px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r2);font-size:13px;color:var(--text);outline:none;transition:border-color .2s}
-.field:focus{border-color:var(--accent)}
-.textarea{width:100%;min-height:200px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r2);padding:12px;font-family:var(--mono);font-size:11px;color:var(--text);resize:vertical;outline:none;line-height:1.6;transition:border-color .2s}
-.textarea:focus{border-color:var(--accent)}
-.btn-main{width:100%;padding:10px;background:linear-gradient(135deg,var(--primary),var(--purple));color:white;border:none;border-radius:var(--r2);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
-.btn-main:hover{transform:translateY(-1px);opacity:.9}
-.btn-sub{width:100%;padding:9px;background:var(--bg);color:var(--muted);border:1px solid var(--border);border-radius:var(--r2);font-size:12px;font-weight:500;cursor:pointer;transition:all .2s;margin-top:5px}
-.btn-sub:hover{border-color:var(--accent);color:var(--accent)}
-.tag-pill{display:inline-block;font-size:10px;padding:2px 8px;background:var(--bg);border:1px solid var(--border);border-radius:20px;color:var(--muted);font-weight:500;margin:2px}
-.tag-row{display:flex;flex-wrap:wrap;gap:2px}
-.s-header{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;padding-bottom:5px;border-bottom:1px solid var(--border)}
-
-/* Log findings */
-.finding-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;margin-bottom:10px;border-left:4px solid;transition:box-shadow .2s}
-.finding-card:hover{box-shadow:var(--s2)}
-.finding-card.Critical{border-left-color:var(--primary)}
-.finding-card.High{border-left-color:var(--warning)}
-.finding-card.Medium{border-left-color:var(--yellow)}
-.finding-card.Low{border-left-color:var(--accent)}
-.f-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
-.f-detail{font-size:12px;color:var(--muted);line-height:1.5}
-.f-rec{font-size:11px;color:var(--accent);margin-top:6px;font-weight:500}
-.sumbar{background:var(--card);border:1px solid var(--border);border-radius:var(--r3);padding:16px 20px;margin-bottom:20px;display:flex;gap:24px;flex-wrap:wrap}
-.sstat .num{font-size:22px;font-weight:700}
-.sstat .lbl{font-size:11px;color:var(--muted);font-weight:500}
-.ip-chip{display:inline-block;font-size:11px;font-family:var(--mono);padding:3px 8px;background:var(--bg);border:1px solid var(--border);border-radius:4px;margin:2px;color:var(--muted)}
-
-/* URL results */
-.risk-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r3);padding:20px 24px;margin-bottom:16px}
-.risk-track{height:8px;border-radius:4px;background:var(--bg);overflow:hidden;margin:12px 0 6px}
-.risk-fill{height:100%;border-radius:4px;transition:width .8s cubic-bezier(.4,0,.2,1)}
-.f-table{width:100%;border-collapse:collapse;font-size:12px}
-.f-table tr{border-bottom:1px solid rgba(255,255,255,.04)}
-.f-table tr:last-child{border:none}
-.f-table td{padding:8px 6px}
-.f-table td:last-child{text-align:right}
-.reason{border-radius:var(--r2);padding:10px 14px;margin-bottom:8px;border-left:3px solid;background:var(--card);border:1px solid var(--border)}
-.reason.high{border-left:3px solid var(--primary);background:rgba(255,107,107,.05)}
-.reason.medium{border-left:3px solid var(--warning);background:rgba(255,159,67,.05)}
-.reason.low,.reason.none{border-left:3px solid var(--accent);background:rgba(78,205,196,.05)}
-.r-flag{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
-.r-detail{font-size:12px;color:var(--muted);line-height:1.5}
-
-/* Quick URLs */
-.qurl{font-size:12px;color:var(--accent);cursor:pointer;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;align-items:center;gap:6px;transition:color .15s}
-.qurl:hover{color:var(--primary)}
-.qurl:last-child{border:none}
-
-/* ══════════════════════════════════════════════════
-   CRIME SCENE — Real detective board aesthetic
-   ══════════════════════════════════════════════════ */
-.crime-layout{display:flex;flex:1;overflow:hidden}
-
-.crime-lp{width:280px;flex-shrink:0;border-right:1px solid var(--border);background:var(--card);display:flex;flex-direction:column;overflow:hidden}
-.crime-lp-header{padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0}
-.crime-lp-body{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px}
-.crime-lp-body::-webkit-scrollbar{width:3px}
-.crime-lp-body::-webkit-scrollbar-thumb{background:var(--border)}
-.crime-textarea{width:100%;min-height:190px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r2);padding:12px;font-family:var(--mono);font-size:11px;color:var(--text);resize:none;outline:none;line-height:1.6;transition:border-color .2s}
-.crime-textarea:focus{border-color:var(--primary)}
-.btn-investigate{width:100%;padding:11px;background:linear-gradient(135deg,var(--primary),var(--purple));color:white;border:none;border-radius:var(--r2);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:.2px}
-.btn-investigate:hover{transform:translateY(-1px);opacity:.9}
-
-/* Detective board */
-.crime-board{flex:1;overflow-y:auto;display:flex;flex-direction:column;position:relative;background:#0a0f1a}
-.crime-board::-webkit-scrollbar{width:4px}
-.crime-board::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
-
-/* Cork board texture */
-.cork-bg{position:absolute;inset:0;background:
-  repeating-linear-gradient(45deg,rgba(255,255,255,.005) 0px,rgba(255,255,255,.005) 1px,transparent 1px,transparent 8px),
-  repeating-linear-gradient(-45deg,rgba(255,255,255,.005) 0px,rgba(255,255,255,.005) 1px,transparent 1px,transparent 8px);
-  pointer-events:none;z-index:0}
-
-/* Yellow police tape */
-.crime-tape{position:sticky;top:0;z-index:50;background:repeating-linear-gradient(90deg,var(--yellow) 0px,var(--yellow) 80px,#000 80px,#000 100px);color:#000;font-size:12px;font-weight:900;letter-spacing:3px;padding:6px 0;text-align:center;text-transform:uppercase;box-shadow:0 2px 8px rgba(0,0,0,.4);user-select:none}
-.crime-tape span{mix-blend-mode:normal}
-
-.crime-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--border);padding:40px;text-align:center;position:relative;z-index:1}
-
-/* Verdict banner */
-.verdict-banner{background:rgba(13,19,33,.95);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;gap:20px;flex-shrink:0;position:sticky;top:40px;z-index:40;backdrop-filter:blur(8px)}
-.verdict-text{font-size:22px;font-weight:800;letter-spacing:-.5px}
-.verdict-sub{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.5;max-width:480px}
-.vstat .num{font-size:24px;font-weight:800}
-.vstat .lbl{font-size:10px;color:var(--muted);font-weight:500}
-
-/* Evidence pinboard */
-.pinboard{padding:24px 28px;position:relative;z-index:1}
-
-.section-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
-.section-label::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.06)}
-
-/* Evidence grid with red string connections (SVG overlay) */
-.evidence-grid-wrap{position:relative;margin-bottom:32px}
-.evidence-grid{display:flex;flex-wrap:wrap;gap:16px;position:relative;z-index:2}
-
-/* Polaroid-style evidence cards */
-.ev-card{width:172px;background:#1a2035;border-radius:6px;padding:0;cursor:pointer;transition:all .35s cubic-bezier(.175,.885,.32,1.275);box-shadow:0 4px 20px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.06);position:relative;animation:pinIn .5s ease forwards;opacity:0;transform-origin:top center}
-@keyframes pinIn{from{opacity:0;transform:translateY(-20px) rotate(var(--rot,0deg))}to{opacity:1;transform:translateY(0) rotate(var(--rot,0deg))}}
-.ev-card:hover{transform:scale(1.08) rotate(0deg)!important;z-index:10;box-shadow:0 16px 40px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.1)}
-
-/* Pushpin */
-.ev-card::before{content:'📌';position:absolute;top:-12px;left:50%;transform:translateX(-50%);font-size:16px;z-index:5;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
-
-/* Photo area */
-.ev-photo{background:linear-gradient(135deg,#0d1321,#1a2035);padding:14px 12px 8px;text-align:center;border-bottom:2px solid rgba(255,255,255,.06)}
-.ev-icon{font-size:36px;display:block;margin-bottom:6px;filter:drop-shadow(0 0 8px rgba(255,255,255,.2))}
-.ev-label{font-size:11px;font-weight:700;color:var(--text);line-height:1.3;text-align:center}
-
-/* Info area (white note paper look) */
-.ev-info{background:#f0ebe0;padding:8px 10px;border-radius:0 0 6px 6px}
-.ev-badge{display:block;text-align:center;margin-bottom:5px}
-.ev-count{font-size:10px;color:#666;text-align:center;margin-bottom:5px;font-family:var(--mono)}
-.ev-qs{border-top:1px solid rgba(0,0,0,.08);padding-top:6px}
-.ev-q{font-size:9px;color:#555;padding:1px 0;display:flex;gap:4px;line-height:1.4;font-family:Georgia,serif}
-
-/* Red string SVG overlay */
-.string-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1}
-
-/* Crime scene timeline */
-.cs-tl{max-width:700px;margin-bottom:32px;position:relative}
-.cs-tl::before{content:'';position:absolute;left:18px;top:14px;bottom:0;width:2px;background:linear-gradient(var(--primary),var(--accent));opacity:.3;z-index:0}
-.cs-tl-item{display:flex;gap:16px;animation:cardIn .5s ease forwards;opacity:0;position:relative}
-@keyframes cardIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-.cs-tl-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;margin-top:14px;border:2px solid var(--bg);box-shadow:0 0 8px currentColor;z-index:1}
-.cs-tl-box{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:11px 15px;flex:1;margin-bottom:12px;border-left:3px solid;transition:all .2s}
-.cs-tl-box:hover{box-shadow:var(--s2);transform:translateX(3px)}
-.cs-tl-step{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
-.cs-tl-text{font-size:13px;color:var(--text);line-height:1.5}
-
-/* IOC grid */
-.ioc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:32px}
-.ioc-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:14px}
-.ioc-card-h{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.ioc-card-lbl{font-size:12px;font-weight:600}
-.ioc-card-count{margin-left:auto;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600}
-.ioc-val{font-size:11px;font-family:var(--mono);color:var(--muted);background:var(--bg);padding:3px 8px;border-radius:4px;margin-bottom:4px;word-break:break-all;display:block;cursor:pointer;transition:color .15s}
-.ioc-val:hover{color:var(--accent)}
-
-/* Action cards */
-.act-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:32px}
-.act-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:12px 14px;display:flex;gap:10px;align-items:flex-start;border-left:3px solid;transition:all .2s;animation:cardIn .4s ease forwards;opacity:0}
-.act-card:hover{box-shadow:var(--s2);transform:translateX(2px)}
-.act-pri{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
-.act-text{font-size:12px;color:var(--muted);line-height:1.5}
-
-/* Mini elements */
-.mini-step{font-size:10px;color:var(--muted);padding:4px 0 4px 10px;border-left:2px solid;margin-bottom:5px;line-height:1.4}
-.ioc-side-lbl{font-size:10px;font-weight:600;margin-bottom:4px}
-.ioc-side-val{font-size:9px;font-family:var(--mono);color:var(--muted);background:var(--bg);padding:2px 6px;border-radius:4px;margin-bottom:2px;word-break:break-all;display:block}
-
-/* Empty states */
-.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;text-align:center;color:var(--muted)}
-.e-icon{font-size:40px;margin-bottom:12px;opacity:.3}
-.e-title{font-size:15px;font-weight:600;color:var(--muted);margin-bottom:6px}
-.e-sub{font-size:13px;color:var(--border);line-height:1.6;max-width:280px}
-.report-btn{width:100%;padding:9px;background:linear-gradient(135deg,var(--accent),var(--purple));color:white;border:none;border-radius:var(--r);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;margin-top:4px;display:none}
-.report-btn:hover{transform:translateY(-1px);opacity:.9}
-
-/* Alert type colors */
-.alert-dot-critical{background:var(--primary)}
-.alert-dot-high{background:var(--warning)}
-.alert-dot-medium{background:var(--yellow)}
-.alert-dot-low{background:var(--accent)}
-
-/* Alerts & Incidents pages */
-.filter-bar{display:flex;gap:8px;padding:12px 24px;background:var(--card);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
-.filter-chip{font-size:12px;padding:5px 12px;border-radius:20px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all .15s;font-weight:500}
-.filter-chip:hover,.filter-chip.active{background:var(--primary);color:white;border-color:var(--primary)}
-
-/* Threat intel page */
-.ti-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-
-/* Animations */
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes spin{to{transform:rotate(360deg)}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-
-/* ═══ CRIME SCENE REDESIGN ═══ */
-.crime-board { background: #1a0f00 !important; }
-.cork-bg {
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='4' fill='%23231500'/%3E%3Ccircle cx='1' cy='1' r='.5' fill='%23332000' opacity='.5'/%3E%3C/svg%3E") !important;
-  opacity:1 !important;
-}
-/* Yellow tape redesign */
-.crime-tape {
-  background: repeating-linear-gradient(90deg,
-    #FFE000 0px, #FFE000 70px,
-    #111 70px, #111 90px) !important;
-  color: #111 !important;
-  font-family: 'Arial Black', sans-serif !important;
-  font-size: 11px !important;
-  font-weight: 900 !important;
-  letter-spacing: 2px !important;
-  padding: 7px 0 !important;
-  box-shadow: 0 3px 12px rgba(0,0,0,.8) !important;
-  border-top: 2px solid #FFE000 !important;
-  border-bottom: 2px solid #FFE000 !important;
-}
-/* Evidence cards - manila folder / polaroid style */
-.ev-card {
-  width: 185px !important;
-  background: #f5e6c8 !important;
-  border-radius: 3px !important;
-  box-shadow: 3px 3px 12px rgba(0,0,0,.7), 0 0 0 1px rgba(0,0,0,.3) !important;
-  border: none !important;
-}
-.ev-card::before { content: '📌' !important; top:-14px !important; font-size:18px !important; filter: drop-shadow(0 2px 4px rgba(0,0,0,.6)) !important; }
-.ev-photo {
-  background: #2a1a00 !important;
-  border-bottom: 3px solid #8B6914 !important;
-  padding: 14px 12px 10px !important;
-}
-.ev-icon { filter: drop-shadow(0 0 10px rgba(255,100,50,.6)) !important; }
-.ev-label { color: #FFD700 !important; font-family: 'Courier New', monospace !important; font-size: 11px !important; }
-.ev-info { background: #f5e6c8 !important; border-radius: 0 0 3px 3px !important; }
-.ev-count { color: #8B4513 !important; font-family: 'Courier New', monospace !important; }
-.ev-q { color: #5a3010 !important; font-family: 'Courier New', monospace !important; font-size: 9px !important; }
-/* Red string */
-#string-svg path { stroke: #CC0000 !important; stroke-width: 2px !important; opacity: 0.85 !important; stroke-dasharray: none !important; filter: drop-shadow(0 0 3px rgba(200,0,0,.5)); }
-/* Verdict banner */
-.verdict-banner { background: rgba(20,10,0,.95) !important; border-bottom: 1px solid #8B6914 !important; }
-/* Section labels */
-.section-label { color: #FFD700 !important; font-family: 'Courier New', monospace !important; }
-.section-label::after { background: #8B6914 !important; }
-/* IOC cards */
-.ioc-card { background: #1a1000 !important; border-color: #8B6914 !important; }
-.ioc-val { background: #0d0800 !important; color: #ccc !important; }
-.act-card { background: #1a1000 !important; border-color: #333 !important; }
-/* Timeline */
-.cs-tl-box { background: #1a1000 !important; border-color: #333 !important; }
-/* Crime left panel */
-.crime-lp { background: #0f0800 !important; border-color: #8B6914 !important; }
-.crime-lp-header { border-color: #8B6914 !important; }
-.crime-textarea { background: #0a0600 !important; border-color: #8B6914 !important; color: #ccc !important; }
-.crime-textarea:focus { border-color: #FFD700 !important; }
-.btn-investigate { background: linear-gradient(135deg, #8B1A1A, #CC0000) !important; }
-/* Blood splatter decoration */
-.crime-board::after {
-  content: '🩸';
-  position: fixed;
-  bottom: 120px;
-  right: 40px;
-  font-size: 28px;
-  opacity: 0.4;
-  pointer-events: none;
-  z-index: 0;
-  transform: rotate(45deg);
-  filter: blur(1px);
-}
-
-/* Evidence number markers */
-.ev-card .ev-number {
-  position: absolute;
-  bottom: -8px;
-  right: -8px;
-  width: 22px;
-  height: 22px;
-  background: #FFD700;
-  color: #000;
-  border-radius: 50%;
-  font-size: 10px;
-  font-weight: 900;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid #000;
-  z-index: 10;
-  font-family: Arial Black, sans-serif;
-}
-/* Fingerprint watermark */
-.pinboard::before {
-  content: '🔍';
-  position: absolute;
-  right: 30px;
-  top: 20px;
-  font-size: 80px;
-  opacity: 0.04;
-  pointer-events: none;
-  z-index: 0;
-}
-/* TOP SECRET stamp on verdict */
-#cs-verdict::after {
-  content: '';
-  display: block;
-}
-.top-secret-stamp {
-  display: inline-block;
-  border: 3px solid #CC0000;
-  color: #CC0000;
-  font-family: 'Courier New', monospace;
-  font-size: 11px;
-  font-weight: 900;
-  padding: 3px 10px;
-  letter-spacing: 3px;
-  transform: rotate(-5deg);
-  margin-top: 8px;
-  opacity: 0.85;
-  text-transform: uppercase;
-}
-/* Case file style for input panel */
-.crime-lp-header::before {
-  content: 'CASE FILE';
-  display: block;
-  font-size: 9px;
-  color: #FFD700;
-  font-family: 'Courier New', monospace;
-  letter-spacing: 3px;
-  margin-bottom: 4px;
-  font-weight: 700;
-}
-/* Wanted poster for empty state */
-#cs-empty {
-  background: radial-gradient(ellipse at center, #1a0f00, #0d0800) !important;
-}
-/* Mini steps styling */
-.mini-step { color: #aaa !important; border-left-width: 2px !important; font-family: 'Courier New', monospace !important; font-size: 10px !important; }
-
+/* ---- LOG ANALYZER PAGE ---- */
+.log-page { flex:1; display:flex; gap:0; overflow:hidden; }
+.log-input-panel { width:380px; flex-shrink:0; border-right:1px solid #1e2d4a; padding:20px; display:flex; flex-direction:column; gap:12px; overflow-y:auto; }
+.log-results-panel { flex:1; padding:20px; overflow-y:auto; }
+.log-results-panel::-webkit-scrollbar{width:4px}
+.log-results-panel::-webkit-scrollbar-thumb{background:#1e2d4a;border-radius:2px}
+.log-textarea { height:280px; resize:vertical; }
+.panel-title { font-size:14px; font-weight:600; color:#e2e8f0; margin-bottom:4px; }
+.panel-sub { font-size:12px; color:#475569; margin-bottom:8px; }
+.finding-card { background:#0f1629; border:1px solid #1e2d4a; border-radius:8px; padding:12px; margin-bottom:10px; border-left:3px solid; }
+.finding-card.Critical{border-left-color:#ef4444}
+.finding-card.High{border-left-color:#fb923c}
+.finding-card.Medium{border-left-color:#fbbf24}
+.finding-card.Low{border-left-color:#4ade80}
+.finding-title{font-size:13px;font-weight:600;margin-bottom:4px}
+.finding-detail{font-size:12px;color:#94a3b8;line-height:1.5}
+.finding-rec{font-size:11px;color:#38bdf8;margin-top:6px}
+.ip-tag{display:inline-block;background:#1e2d4a;color:#94a3b8;padding:2px 8px;border-radius:4px;font-family:monospace;font-size:11px;margin:2px}
+.summary-bar{background:#0f1629;border:1px solid #1e2d4a;border-radius:8px;padding:12px;margin-bottom:14px;display:flex;gap:16px;flex-wrap:wrap}
+.summary-stat{text-align:center}
+.summary-stat .num{font-size:20px;font-weight:700}
+.summary-stat .lbl{font-size:10px;color:#475569}
+.report-btn{width:100%;background:linear-gradient(135deg,#1e3a5f,#0f2744);color:#38bdf8;border:1px solid #1e4a7f;border-radius:6px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px}
+.report-btn:hover{background:linear-gradient(135deg,#1e4a7f,#1e3a5f)}
 </style>
 </head>
 <body>
 
-
-
-
-<!-- ══ TOPBAR ══ -->
 <div class="topbar">
-  <div class="logo">
-    <div class="logo-icon">🛡️</div>
-    <div class="logo-name">Sentinel <span>SOC</span></div>
+  <span style="font-size:22px">🛡️</span>
+  <div>
+    <h1>SOC Assistant</h1>
+    <div class="sub">AI-powered Security Operations Center</div>
   </div>
-  <div class="search-bar">
-    <span class="si">🔍</span>
-    <input type="text" placeholder="Search for IP, user, domain, alert… ⌘K" id="global-search"/>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('chat')">💬 Chat</button>
+    <button class="nav-tab" onclick="showPage('logs')">📋 Log Analyzer</button>
   </div>
-  <div class="topbar-right">
-    <div class="tb-btn" title="Notifications">🔔<div class="notif-dot"></div></div>
-    <div class="tb-btn" title="Help">❓</div>
-    <div class="admin-pill">
-      <div class="admin-avatar">A</div>
-      <div class="admin-name">Admin ▾</div>
-    </div>
-  </div>
+  <div class="status-dot"></div>
 </div>
 
-<div class="app-body">
-
-<!-- ══ SIDEBAR ══ -->
-<div class="sidebar">
-  <div class="sidebar-nav">
-    <div class="nav-section">Main</div>
-    <div class="nav-item active" onclick="showPage('overview',this)"><span class="ni">🏠</span>Overview</div>
-    <div class="nav-item" onclick="showPage('alerts',this)"><span class="ni">🚨</span>Alerts</div>
-    <div class="nav-item" onclick="showPage('incidents',this)"><span class="ni">📋</span>Incidents</div>
-    <div class="nav-section">Analysis</div>
-    <div class="nav-item" onclick="showPage('chat',this)"><span class="ni">💬</span>AI Assistant</div>
-    <div class="nav-item" onclick="showPage('logs',this)"><span class="ni">📄</span>Log Analyzer</div>
-    <div class="nav-item" onclick="showPage('urlscan',this)"><span class="ni">🔗</span>URL Scanner</div>
-    <div class="nav-item" onclick="showPage('crime',this)"><span class="ni">🔍</span>Crime Scene</div>
-    <div class="nav-item" onclick="showPage('galaxy',this)"><span class="ni">🌌</span>Cyber Galaxy</div>
-    <div class="nav-section">Intelligence</div>
-    <div class="nav-item" onclick="showPage('threatintel',this)"><span class="ni">🌐</span>Threat Intel</div>
-    <div class="nav-item" onclick="showPage('assets',this)"><span class="ni">💻</span>Assets</div>
-    <div class="nav-section">Reports</div>
-    <div class="nav-item" onclick="showPage('reports',this)"><span class="ni">📊</span>Reports</div>
-    <div class="nav-item"><span class="ni">⚙️</span>Settings</div>
-  </div>
-  <div class="sidebar-footer">
-    <div class="sys-status">
-      <div class="sys-status-title">System Status</div>
-      <div><span class="sys-dot"></span><span class="sys-label">All systems operational</span></div>
-      <div class="sys-uptime">Uptime: 99.98%</div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════
-     OVERVIEW PAGE
-     ══════════════════════════════════════ -->
-<div class="page active" id="page-overview">
-  <div class="page-header">
-    <div><div class="page-title">Overview</div><div class="page-sub">Security operations dashboard — Last updated: <span id="last-updated">Loading…</span></div></div>
-    <div class="page-actions">
-      <button class="btn btn-ghost" onclick="loadOverview()">↻ Refresh</button>
-      <button class="btn btn-primary">+ New Incident</button>
-    </div>
-  </div>
-  <div class="page-content">
-
-    <!-- KPI Cards -->
-    <div class="kpi-grid" id="kpi-grid">
-      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(255,107,107,.15)">🔔</div><div><div class="kpi-label">Total Alerts</div><div class="kpi-value" id="kpi-total">—</div><div><span class="kpi-change up" id="kpi-total-ch">—</span><span class="kpi-vs">vs yesterday</span></div></div></div>
-      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(255,107,107,.2)">🚨</div><div><div class="kpi-label">Critical Alerts</div><div class="kpi-value" id="kpi-critical">—</div><div><span class="kpi-change up" id="kpi-critical-ch">—</span><span class="kpi-vs">vs yesterday</span></div></div></div>
-      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(255,230,109,.15)">⚡</div><div><div class="kpi-label">Incidents</div><div class="kpi-value" id="kpi-incidents">—</div><div><span class="kpi-change down" id="kpi-incidents-ch">—</span><span class="kpi-vs">vs yesterday</span></div></div></div>
-      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(78,205,196,.15)">💻</div><div><div class="kpi-label">Assets Monitored</div><div class="kpi-value" id="kpi-assets">—</div><div><span class="kpi-change up" id="kpi-assets-ch">—</span><span class="kpi-vs">vs yesterday</span></div></div></div>
-      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(162,155,254,.15)">👥</div><div><div class="kpi-label">Users Monitored</div><div class="kpi-value" id="kpi-users">—</div><div><span class="kpi-change up" id="kpi-users-ch">—</span><span class="kpi-vs">vs yesterday</span></div></div></div>
-    </div>
-
-    <!-- Charts Row -->
-    <div class="charts-row">
-      <div class="card">
-        <div class="card-title">
-          <div class="ct-left">📈 Alerts Over Time</div>
-          <select style="background:var(--bg);border:1px solid var(--border);border-radius:var(--r);padding:4px 8px;color:var(--muted);font-size:11px;outline:none">
-            <option>Last 24 Hours</option><option>Last 7 Days</option><option>Last 30 Days</option>
-          </select>
-        </div>
-        <div class="chart-area"><canvas id="alerts-chart"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="card-title"><div class="ct-left">🎯 Alerts by Severity</div></div>
-        <div class="donut-wrap"><canvas id="severity-chart"></canvas>
-          <div class="donut-center"><div class="donut-total" id="donut-total">—</div><div class="donut-label">Total</div></div>
-        </div>
-        <div class="donut-legend" id="severity-legend"></div>
+<!-- ==================== CHAT PAGE ==================== -->
+<div class="page active" id="page-chat">
+  <div class="chat-section">
+    <div class="chat-messages" id="chat-messages">
+      <div class="msg assistant">
+        <span class="severity-badge sev-low">● ONLINE</span><br>
+        👋 Hello! I'm your SOC Assistant powered by RAG + Threat Intelligence.<br><br>
+        🔍 <strong>Analyze IPs, domains, and file hashes</strong><br>
+        📋 <strong>Investigate security alerts and logs</strong><br>
+        📚 <strong>Answer cybersecurity questions</strong><br>
+        🚨 <strong>Provide incident response guidance</strong><br><br>
+        Paste a suspicious IP, log entry, or ask me anything!
       </div>
     </div>
-
-    <!-- Bottom Row -->
-    <div style="display:grid;grid-template-columns:1fr 240px 240px;gap:14px">
-
-      <!-- Recent Alerts -->
-      <div class="card">
-        <div class="card-title"><div class="ct-left">🚨 Recent Alerts</div><span class="view-all" onclick="showPage('alerts',document.querySelector('.nav-item:nth-child(3)'))">View all →</span></div>
-        <div id="alerts-feed"></div>
+    <div id="thinking" class="thinking">
+      <div class="dot-pulse"><span></span><span></span><span></span></div>
+      SOC Assistant is analyzing...
+    </div>
+    <div class="chat-input-area">
+      <div class="quick-btns">
+        <button class="quick-btn" onclick="quickSend('What is ransomware and how do I detect it?')">🦠 Ransomware</button>
+        <button class="quick-btn" onclick="quickSend('Explain SQL injection attack indicators in logs')">💉 SQL Injection</button>
+        <button class="quick-btn" onclick="quickSend('I see multiple failed SSH login attempts from 192.168.1.105, what should I do?')">🔐 Brute Force</button>
+        <button class="quick-btn" onclick="quickSend('What does port 4444 activity mean?')">🚪 Port 4444</button>
+        <button class="quick-btn" onclick="quickSend('How do I respond to a ransomware incident?')">🚨 Incident Response</button>
       </div>
-
-      <!-- Top Attack Types -->
-      <div class="card">
-        <div class="card-title"><div class="ct-left">💥 Attack Types</div></div>
-        <div id="attack-types"></div>
-      </div>
-
-      <!-- Active Threats -->
-      <div class="card">
-        <div class="card-title"><div class="ct-left">⚠️ Active Threats</div><span class="view-all">View all →</span></div>
-        <div id="active-threats"></div>
+      <div class="input-row">
+        <input type="text" class="chat-input" id="chat-input" placeholder="Ask about threats, paste IPs, logs, or hashes..."/>
+        <button class="send-btn" onclick="sendMessage()">Send →</button>
       </div>
     </div>
-
-    <!-- System Health + Incidents -->
-    <div style="display:grid;grid-template-columns:260px 1fr;gap:14px">
-      <div class="card">
-        <div class="card-title"><div class="ct-left">💚 System Health</div></div>
-        <div class="health-grid" id="health-grid"></div>
-      </div>
-      <div class="card">
-        <div class="card-title"><div class="ct-left">📋 Recent Incidents</div><span class="view-all" onclick="showPage('incidents',null)">View all →</span></div>
-        <table class="alerts-table" id="incidents-table">
-          <thead><tr><th>ID</th><th>Title</th><th>Severity</th><th>Status</th><th>Created</th><th>Assigned</th></tr></thead>
-          <tbody id="incidents-tbody"></tbody>
-        </table>
+  </div>
+  <div class="sidebar">
+    <div class="sidebar-card">
+      <div class="sidebar-title">Session Stats</div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="stat-num" id="stat-queries" style="color:#38bdf8">0</div><div class="stat-label">Queries</div></div>
+        <div class="stat-box"><div class="stat-num" id="stat-threats" style="color:#f87171">0</div><div class="stat-label">Threats Found</div></div>
+        <div class="stat-box"><div class="stat-num" id="stat-critical" style="color:#fb923c">0</div><div class="stat-label">Critical</div></div>
+        <div class="stat-box"><div class="stat-num" id="stat-clean" style="color:#4ade80">0</div><div class="stat-label">Clean</div></div>
       </div>
     </div>
-
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════
-     ALERTS PAGE
-     ══════════════════════════════════════ -->
-<div class="page" id="page-alerts">
-  <div class="page-header">
-    <div><div class="page-title">🚨 Alerts</div><div class="page-sub">All security alerts — sorted by time</div></div>
-    <div class="page-actions"><button class="btn btn-ghost">Export</button><button class="btn btn-primary">+ Create Alert</button></div>
-  </div>
-  <div class="filter-bar">
-    <button class="filter-chip active">All</button>
-    <button class="filter-chip">Critical</button>
-    <button class="filter-chip">High</button>
-    <button class="filter-chip">Medium</button>
-    <button class="filter-chip">Low</button>
-    <button class="filter-chip">Malware</button>
-    <button class="filter-chip">Brute Force</button>
-    <button class="filter-chip">C2</button>
-  </div>
-  <div class="page-content">
-    <div class="card">
-      <table class="alerts-table" id="alerts-full-table">
-        <thead><tr><th>ID</th><th>Alert</th><th>Source</th><th>IP</th><th>Severity</th><th>Time</th><th>Action</th></tr></thead>
-        <tbody id="alerts-full-tbody"></tbody>
-      </table>
+    <div class="sidebar-card">
+      <div class="sidebar-title">🔍 Quick IOC Checker</div>
+      <input type="text" class="indicator-input" id="ioc-input" placeholder="IP, domain, or file hash..."/>
+      <button class="check-btn" onclick="checkIOC()">Check Threat Intel →</button>
+      <div class="result-box" id="ioc-result"></div>
     </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════
-     INCIDENTS PAGE
-     ══════════════════════════════════════ -->
-<div class="page" id="page-incidents">
-  <div class="page-header">
-    <div><div class="page-title">📋 Incidents</div><div class="page-sub">Active and resolved security incidents</div></div>
-    <div class="page-actions"><button class="btn btn-ghost">Export</button><button class="btn btn-primary">+ New Incident</button></div>
-  </div>
-  <div class="page-content">
-    <div class="card">
-      <table class="alerts-table">
-        <thead><tr><th>ID</th><th>Title</th><th>Severity</th><th>Status</th><th>Created</th><th>Assigned To</th><th>Action</th></tr></thead>
-        <tbody id="incidents-full-tbody"></tbody>
-      </table>
+    <div class="sidebar-card">
+      <div class="sidebar-title">📋 Recommendations</div>
+      <div id="recommendations"><div class="rec-item" style="color:#475569">Ask a question to get recommendations...</div></div>
     </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════
-     AI ASSISTANT / CHAT PAGE
-     ══════════════════════════════════════ -->
-<div class="page" id="page-chat">
-  <div class="chat-layout">
-    <div class="chat-main">
-      <div class="chat-msgs" id="chat-msgs">
-        <div class="msg-row assistant">
-          <div class="msg-avatar">🛡️</div>
-          <div>
-            <div class="msg-bubble"><strong>Hello! I'm your Sentinel SOC AI Assistant.</strong><br><br>
-              🔍 Analyze IPs, domains, and file hashes<br>
-              📋 Investigate security alerts and logs<br>
-              📚 Answer cybersecurity questions<br>
-              🚨 Provide incident response guidance<br><br>
-              Paste a suspicious IP, log entry, or ask me anything!</div>
-            <div class="msg-meta">SOC Assistant • Just now</div>
-          </div>
-        </div>
-      </div>
-      <div class="typing" id="typing">
-        <div class="msg-avatar" style="background:var(--card);border:1px solid var(--border);width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">🛡️</div>
-        <div class="typing-bubble"><div class="tdot"></div><div class="tdot"></div><div class="tdot"></div></div>
-        <span style="font-size:12px;color:var(--muted)">Analyzing…</span>
-      </div>
-      <div class="chat-input-area">
-        <div class="quick-row">
-          <button class="qbtn" onclick="quickSend('What is ransomware and how do I detect it?')">🦠 Ransomware</button>
-          <button class="qbtn" onclick="quickSend('Explain SQL injection indicators in server logs')">💉 SQL Injection</button>
-          <button class="qbtn" onclick="quickSend('Multiple failed SSH logins from 192.168.1.105')">🔐 Brute Force</button>
-          <button class="qbtn" onclick="quickSend('What does port 4444 activity mean?')">🚪 Port 4444</button>
-          <button class="qbtn" onclick="quickSend('How do I respond to a ransomware incident?')">🚨 IR Guide</button>
-        </div>
-        <div class="input-row">
-          <input class="chat-input" id="chat-input" placeholder="Ask about threats, paste IPs, logs, or hashes…" type="text"/>
-          <button class="send-btn" onclick="sendMessage()">→</button>
-        </div>
-      </div>
-    </div>
-    <div class="chat-sidebar">
-      <div>
-        <div class="s-title">Session Stats</div>
-        <div class="stat-grid">
-          <div class="stat-card"><div class="stat-num" id="s-q" style="color:var(--accent)">0</div><div class="stat-lbl">Queries</div></div>
-          <div class="stat-card"><div class="stat-num" id="s-t" style="color:var(--primary)">0</div><div class="stat-lbl">Threats</div></div>
-          <div class="stat-card"><div class="stat-num" id="s-c" style="color:var(--warning)">0</div><div class="stat-lbl">Critical</div></div>
-          <div class="stat-card"><div class="stat-num" id="s-cl" style="color:var(--accent)">0</div><div class="stat-lbl">Clean</div></div>
-        </div>
-      </div>
-      <div>
-        <div class="s-title">Quick IOC Checker</div>
-        <input class="ioc-input" id="ioc-input" placeholder="IP, domain, or file hash…" type="text"/>
-        <button class="btn-accent" onclick="checkIOC()">Check Threat Intel →</button>
-        <div class="ioc-result" id="ioc-result"></div>
-      </div>
-      <div>
-        <div class="s-title">Recommendations</div>
-        <div id="recs"><div style="font-size:12px;color:var(--muted);line-height:1.6">Ask a question to get security recommendations…</div></div>
-      </div>
-      <div>
-        <div class="s-title">Severity Levels</div>
-        <div style="display:flex;flex-direction:column;gap:5px;font-size:12px">
-          <div style="display:flex;align-items:center;gap:8px"><span class="sev-badge sev-critical" style="margin:0">CRITICAL</span> Immediate action</div>
-          <div style="display:flex;align-items:center;gap:8px"><span class="sev-badge sev-high" style="margin:0">HIGH</span> Investigate urgently</div>
-          <div style="display:flex;align-items:center;gap:8px"><span class="sev-badge sev-medium" style="margin:0">MEDIUM</span> Monitor closely</div>
-          <div style="display:flex;align-items:center;gap:8px"><span class="sev-badge sev-low" style="margin:0">LOW</span> Standard monitoring</div>
-        </div>
+    <div class="sidebar-card">
+      <div class="sidebar-title">Severity Levels</div>
+      <div style="display:flex;flex-direction:column;gap:6px;font-size:12px">
+        <div style="display:flex;align-items:center;gap:8px"><span class="severity-badge sev-critical" style="font-size:10px;padding:2px 8px">CRITICAL</span>Immediate action</div>
+        <div style="display:flex;align-items:center;gap:8px"><span class="severity-badge sev-high" style="font-size:10px;padding:2px 8px">HIGH</span>Investigate urgently</div>
+        <div style="display:flex;align-items:center;gap:8px"><span class="severity-badge sev-medium" style="font-size:10px;padding:2px 8px">MEDIUM</span>Monitor closely</div>
+        <div style="display:flex;align-items:center;gap:8px"><span class="severity-badge sev-low" style="font-size:10px;padding:2px 8px">LOW</span>Standard monitoring</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     LOG ANALYZER PAGE
-     ══════════════════════════════════════ -->
+<!-- ==================== LOG ANALYZER PAGE ==================== -->
 <div class="page" id="page-logs">
-  <div class="two-col">
-    <div class="lp" style="width:320px">
-      <div class="p-title">📄 Log Analyzer</div>
-      <div class="p-sub">Paste raw server logs — AI detects attack patterns and builds a visual timeline</div>
-      <textarea class="textarea" id="log-input" placeholder="Paste your logs here…"></textarea>
-      <button class="btn-main" onclick="analyzeLogs()">🔍 Analyze Logs</button>
-      <button class="btn-sub" onclick="loadSampleLogs()">📝 Load Sample Logs</button>
-      <button class="report-btn" id="report-btn" onclick="downloadReport()">📄 Download PDF Report</button>
-      <div><div class="s-header">Detects</div>
-        <div class="tag-row">
-          <span class="tag-pill">Brute Force</span><span class="tag-pill">SQL Injection</span>
-          <span class="tag-pill">XSS</span><span class="tag-pill">Dir Traversal</span>
-          <span class="tag-pill">Cmd Injection</span><span class="tag-pill">Port Scans</span>
-          <span class="tag-pill">Ransomware</span><span class="tag-pill">Exfiltration</span>
-        </div>
+  <div class="log-page">
+    <div class="log-input-panel">
+      <div>
+        <div class="panel-title">📋 Log Analyzer</div>
+        <div class="panel-sub">Paste raw server logs — AI detects attack patterns and builds a timeline</div>
+      </div>
+      <textarea class="log-textarea" id="log-input" placeholder="Paste your logs here...
+
+Example:
+192.168.1.105 - [10:15:01] Failed password for root
+10.0.0.55 - [10:16:01] GET /search?q=UNION SELECT * FROM users
+10.0.0.55 - [10:16:05] GET /page?file=../../etc/passwd
+"></textarea>
+      <button class="check-btn" onclick="analyzeLogs()">🔍 Analyze Logs</button>
+      <button class="check-btn" style="background:#0a1a2e" onclick="loadSampleLogs()">📝 Load Sample Logs</button>
+      <button class="report-btn" id="report-btn" onclick="downloadReport()" style="display:none">📄 Download PDF Report</button>
+      <div style="background:#0a0e1a;border-radius:6px;padding:10px;font-size:11px;color:#475569">
+        <strong style="color:#64748b">Detects:</strong><br>
+        Brute Force · SQL Injection · XSS · Directory Traversal · Command Injection · Port Scans · Ransomware · Data Exfiltration
       </div>
     </div>
-    <div class="rp" id="log-results"><div class="empty"><div class="e-icon">📄</div><div class="e-title">Paste logs and click Analyze</div><div class="e-sub">Supports Apache, Nginx, SSH, firewall, and custom log formats</div></div></div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════
-     URL SCANNER PAGE
-     ══════════════════════════════════════ -->
-<div class="page" id="page-urlscan">
-  <div class="two-col">
-    <div class="lp" style="width:300px">
-      <div class="p-title">🔗 URL Scanner</div>
-      <div class="p-sub">ML analysis + VirusTotal. Works from any browser!</div>
-      <input class="field" id="url-input" placeholder="https://example.com" type="text"/>
-      <button class="btn-main" onclick="scanURL()">🔍 Scan URL</button>
-      <button class="btn-sub" onclick="toggleSamples()">📝 Try Sample URLs</button>
-      <div id="url-samples" style="display:none;margin-top:4px">
-        <div class="s-header">Quick Tests</div>
-        <div class="qurl" onclick="setAndScan('https://www.google.com')">✅ google.com</div>
-        <div class="qurl" onclick="setAndScan('http://paypa1-secure-login.xyz/verify')">🛑 paypa1-secure-login.xyz</div>
-        <div class="qurl" onclick="setAndScan('http://192.168.1.1/bank/login')">🛑 IP address bank login</div>
-        <div class="qurl" onclick="setAndScan('http://amazon-secure-account-update.tk/signin')">⚠️ amazon-secure-update.tk</div>
-      </div>
-      <div style="margin-top:auto"><div class="s-header">Checks</div>
-        <div class="tag-row">
-          <span class="tag-pill">ML Features</span><span class="tag-pill">HTTPS</span>
-          <span class="tag-pill">IP Detection</span><span class="tag-pill">Keywords</span>
-          <span class="tag-pill">VirusTotal</span><span class="tag-pill">Entropy</span>
-        </div>
-      </div>
-    </div>
-    <div class="rp" id="url-results"><div class="empty"><div class="e-icon">🔗</div><div class="e-title">Enter a URL to scan</div><div class="e-sub">Combines ML + VirusTotal. Works on any browser.</div></div></div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════
-     CRIME SCENE PAGE
-     ══════════════════════════════════════ -->
-<div class="page" id="page-crime">
-  <div class="crime-layout">
-    <div class="crime-lp">
-      <div class="crime-lp-header">
-        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px">🔍 Crime Scene</div>
-        <div style="font-size:11px;color:var(--muted)">AI-powered incident reconstruction</div>
-      </div>
-      <div class="crime-lp-body">
-        <div class="s-header">Evidence Input</div>
-        <textarea class="crime-textarea" id="crime-input" placeholder="Paste any incident data:
-• Server logs with timestamps
-• Email headers & subjects
-• Alert notifications
-• IPs, URLs, hashes
-• SIEM / EDR alerts
-
-AI will reconstruct the full attack chain…"></textarea>
-        <button class="btn-investigate" onclick="analyzeCrimeScene()" id="cs-btn"><span id="cs-btn-text">🔍 Investigate Scene</span></button>
-        <button class="btn-sub" onclick="loadCrimeSample()">📋 Load Demo Incident</button>
-        <div id="cs-iocs-panel" style="display:none"><div class="s-header">Extracted IOCs</div><div id="cs-iocs-side"></div></div>
-        <div id="cs-mini-tl" style="display:none"><div class="s-header">Attack Chain</div><div id="cs-mini-steps"></div></div>
-      </div>
-    </div>
-    <div class="crime-board" id="cs-board">
-      <div class="cork-bg"></div>
-      <!-- Police tape always visible -->
-      <div class="crime-tape"><span>⚠ POLICE LINE — DO NOT CROSS ⚠ CRIME SCENE ⚠ POLICE LINE — DO NOT CROSS ⚠ CRIME SCENE ⚠ POLICE LINE — DO NOT CROSS ⚠</span></div>
-
-      <div id="cs-empty" class="crime-empty" style="position:relative;z-index:1">
-        <div style="font-size:64px;margin-bottom:16px;opacity:.25">🔮</div>
-        <div style="font-size:18px;font-weight:700;color:var(--border);margin-bottom:8px">Crime Scene Awaits</div>
-        <div style="font-size:13px;color:var(--border);max-width:260px;line-height:1.7">Paste incident data and click Investigate to reconstruct the attack chain</div>
-        <div style="margin-top:26px;display:flex;gap:22px;opacity:.3">
-          <div style="text-align:center"><div style="font-size:22px;margin-bottom:4px">📧</div><div style="font-size:11px;color:var(--muted)">Phishing</div></div>
-          <div style="text-align:center"><div style="font-size:22px;margin-bottom:4px">💻</div><div style="font-size:11px;color:var(--muted)">Malware</div></div>
-          <div style="text-align:center"><div style="font-size:22px;margin-bottom:4px">📡</div><div style="font-size:11px;color:var(--muted)">C2</div></div>
-          <div style="text-align:center"><div style="font-size:22px;margin-bottom:4px">📤</div><div style="font-size:11px;color:var(--muted)">Exfil</div></div>
-        </div>
-      </div>
-
-      <div id="cs-results" style="display:none;flex-direction:column;position:relative;z-index:1">
-        <div class="verdict-banner">
-          <div style="flex:1">
-            <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px">Case Status</div>
-            <div class="verdict-text" id="cs-verdict"></div>
-            <div class="verdict-sub" id="cs-summary"></div>
-          </div>
-          <div style="display:flex;gap:20px">
-            <div class="vstat"><div class="num" id="cs-n-ev" style="color:var(--accent)">0</div><div class="lbl">Evidence</div></div>
-            <div class="vstat"><div class="num" id="cs-n-cr" style="color:var(--primary)">0</div><div class="lbl">Critical</div></div>
-            <div class="vstat"><div class="num" id="cs-n-io" style="color:var(--yellow)">0</div><div class="lbl">IOCs</div></div>
-          </div>
-        </div>
-        <div class="pinboard">
-          <div class="section-label">Evidence Board</div>
-          <!-- Red string SVG canvas -->
-          <div class="evidence-grid-wrap">
-            <svg class="string-canvas" id="string-svg" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1"></svg>
-            <div class="evidence-grid" id="cs-cards" style="position:relative;z-index:2"></div>
-          </div>
-          <div id="cs-tl-wrap" style="display:none;margin-bottom:32px">
-            <div class="section-label">Attack Timeline</div>
-            <div class="cs-tl" id="cs-tl"></div>
-          </div>
-          <div id="cs-ioc-wrap" style="display:none;margin-bottom:32px">
-            <div class="section-label">Indicators of Compromise</div>
-            <div class="ioc-grid" id="cs-ioc-grid"></div>
-          </div>
-          <div id="cs-act-wrap" style="display:none;margin-bottom:32px">
-            <div class="section-label">Recommended Actions</div>
-            <div class="act-grid" id="cs-act-grid"></div>
-          </div>
-        </div>
+    <div class="log-results-panel" id="log-results">
+      <div style="text-align:center;padding:60px 20px;color:#475569">
+        <div style="font-size:40px;margin-bottom:12px">📋</div>
+        <div style="font-size:16px;margin-bottom:6px">Paste logs and click Analyze</div>
+        <div style="font-size:13px">Supports Apache, Nginx, SSH, firewall, and custom log formats</div>
       </div>
     </div>
   </div>
 </div>
-
-<!-- ══════════════════════════════════════
-     THREAT INTEL PAGE
-     ══════════════════════════════════════ -->
-<div class="page" id="page-threatintel">
-  <div class="page-header">
-    <div><div class="page-title">🌐 Threat Intelligence</div><div class="page-sub">Real-time IOC lookup and threat feeds</div></div>
-    <div class="page-actions"><button class="btn btn-primary">+ Add IOC</button></div>
-  </div>
-  <div class="page-content">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-      <div class="card">
-        <div class="card-title"><div class="ct-left">🔍 IOC Lookup</div></div>
-        <input class="ioc-input" id="ti-ioc-input" placeholder="Enter IP, domain, or file hash…" style="width:100%;margin-bottom:10px"/>
-        <button class="btn-main" onclick="tiLookup()">Check VirusTotal →</button>
-        <div class="ioc-result" id="ti-result" style="margin-top:12px"></div>
-      </div>
-      <div class="card">
-        <div class="card-title"><div class="ct-left">⚠️ Active Threat Feeds</div></div>
-        <div id="ti-threats"></div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-title"><div class="ct-left">📊 Attack Type Distribution</div></div>
-      <div id="ti-attack-types" style="display:flex;flex-direction:column;gap:8px"></div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════
-     ASSETS PAGE
-     ══════════════════════════════════════ -->
-<div class="page" id="page-assets">
-  <div class="page-header">
-    <div><div class="page-title">💻 Assets</div><div class="page-sub">Monitored endpoints, servers, and network devices</div></div>
-    <div class="page-actions"><button class="btn btn-primary">+ Add Asset</button></div>
-  </div>
-  <div class="page-content">
-    <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
-      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(78,205,196,.15)">🖥️</div><div><div class="kpi-label">Workstations</div><div class="kpi-value">842</div><div class="kpi-change up">44.4%</div></div></div>
-      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(162,155,254,.15)">🗄️</div><div><div class="kpi-label">Servers</div><div class="kpi-value">512</div><div class="kpi-change up">27.0%</div></div></div>
-      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(255,230,109,.15)">🌐</div><div><div class="kpi-label">Network Devices</div><div class="kpi-value">243</div><div class="kpi-change up">12.8%</div></div></div>
-      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(253,121,168,.15)">📱</div><div><div class="kpi-label">Other Devices</div><div class="kpi-value">300</div><div class="kpi-change up">15.8%</div></div></div>
-    </div>
-    <div class="card">
-      <div class="card-title"><div class="ct-left">Asset Inventory</div></div>
-      <table class="alerts-table">
-        <thead><tr><th>Asset</th><th>Type</th><th>IP</th><th>Status</th><th>Last Seen</th><th>Risk</th></tr></thead>
-        <tbody>
-          <tr><td>WORKSTATION-042</td><td>Workstation</td><td>192.168.1.42</td><td><span class="status-badge status-inprogress">At Risk</span></td><td>2 min ago</td><td><span class="badge badge-critical">Critical</span></td></tr>
-          <tr><td>FILESERVER-01</td><td>Server</td><td>192.168.1.10</td><td><span class="status-badge status-investigating">Investigating</span></td><td>5 min ago</td><td><span class="badge badge-high">High</span></td></tr>
-          <tr><td>WEBSERVER-01</td><td>Server</td><td>192.168.1.20</td><td><span class="status-badge status-resolved">Healthy</span></td><td>1 min ago</td><td><span class="badge badge-low">Low</span></td></tr>
-          <tr><td>LAPTOP-19</td><td>Workstation</td><td>192.168.1.88</td><td><span class="status-badge status-resolved">Healthy</span></td><td>3 min ago</td><td><span class="badge badge-low">Low</span></td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════
-     REPORTS PAGE
-     ══════════════════════════════════════ -->
-<div class="page" id="page-reports">
-  <div class="page-header">
-    <div><div class="page-title">📊 Reports</div><div class="page-sub">Generate and download security reports</div></div>
-    <div class="page-actions"><button class="btn btn-primary">+ Generate Report</button></div>
-  </div>
-  <div class="page-content">
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px">
-      <div class="card" style="cursor:pointer" onclick="alert('Generating Executive Summary PDF…')">
-        <div style="font-size:32px;margin-bottom:12px">📄</div>
-        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px">Executive Summary</div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.5">High-level overview of security posture for C-suite</div>
-        <button class="btn-main" style="margin-top:14px;padding:8px">Generate PDF</button>
-      </div>
-      <div class="card" style="cursor:pointer">
-        <div style="font-size:32px;margin-bottom:12px">🔍</div>
-        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px">Incident Report</div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.5">Detailed incident analysis and response timeline</div>
-        <button class="btn-main" style="margin-top:14px;padding:8px">Generate PDF</button>
-      </div>
-      <div class="card" style="cursor:pointer">
-        <div style="font-size:32px;margin-bottom:12px">🌐</div>
-        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px">Threat Intelligence</div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.5">IOC analysis and threat landscape summary</div>
-        <button class="btn-main" style="margin-top:14px;padding:8px">Generate PDF</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-<!-- ══ CYBER GALAXY PAGE ══ -->
-<div class="page" id="page-galaxy">
-  <div class="page-header">
-    <div><div class="page-title">🌌 Cyber Galaxy</div><div class="page-sub">Live threat universe — meteors are active attacks, asteroids are minor alerts, comets are critical incidents</div></div>
-    <div class="page-actions"><button class="btn btn-ghost" onclick="loadGalaxyData()">↻ Refresh</button></div>
-  </div>
-  <div style="flex:1;position:relative;overflow:hidden;background:#05030f;display:flex;flex-direction:column">
-    <div style="flex:1;position:relative;overflow:hidden">
-      <canvas id="galaxy-bg-canvas" style="position:absolute;inset:0;width:100%;height:100%"></canvas>
-      <canvas id="galaxy-line-canvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
-      <div id="galaxy-planet-layer" style="position:absolute;inset:0;z-index:10"></div>
-
-      <!-- Legend -->
-      <div style="position:absolute;left:16px;top:16px;z-index:25;background:rgba(13,19,33,.85);border:1px solid var(--border);border-radius:10px;padding:12px 14px;backdrop-filter:blur(10px);font-size:11px">
-        <div style="font-weight:700;color:var(--text);margin-bottom:8px;letter-spacing:.5px">LEGEND</div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><span style="font-size:14px">☄️</span><span style="color:var(--muted)">Meteor = Active attack happening now</span></div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><span style="font-size:14px">🪨</span><span style="color:var(--muted)">Asteroid = Minor / low alert</span></div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px"><span style="font-size:14px">☄️✨</span><span style="color:var(--muted)">Comet = Critical incident</span></div>
-        <div style="display:flex;align-items:center;gap:8px"><span style="font-size:14px">🪐</span><span style="color:var(--muted)">Planet = Security domain</span></div>
-      </div>
-
-      <!-- Galaxy stats -->
-      <div style="position:absolute;right:16px;top:16px;z-index:25;background:rgba(13,19,33,.85);border:1px solid var(--border);border-radius:10px;padding:12px 16px;backdrop-filter:blur(10px);text-align:right" id="galaxy-stat-box">
-        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Live Threat Field</div>
-        <div style="font-size:20px;font-weight:800;color:var(--primary)" id="galaxy-active-count">—</div>
-        <div style="font-size:10px;color:var(--muted)">active events in orbit</div>
-      </div>
-
-      <div id="galaxy-info-panel" style="display:none;position:absolute;right:16px;top:90px;width:260px;background:rgba(13,19,33,.94);border:1px solid var(--border);border-radius:12px;padding:16px;z-index:30;backdrop-filter:blur(12px)">
-        <div id="gi-title" style="font-size:14px;font-weight:700;margin-bottom:4px"></div>
-        <div id="gi-sub" style="font-size:11px;color:var(--muted);margin-bottom:12px"></div>
-        <div id="gi-stats"></div>
-        <button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="investigateFromGalaxy()">🔍 Investigate in AI Chat</button>
-      </div>
-
-      <div id="meteor-tooltip" style="display:none;position:fixed;background:rgba(13,19,33,.96);border:1px solid var(--primary);border-radius:8px;padding:10px 14px;font-size:12px;z-index:99;pointer-events:none;max-width:220px"></div>
-    </div>
-
-    <!-- Live event ticker -->
-    <div style="flex-shrink:0;background:rgba(13,19,33,.95);border-top:1px solid var(--border);padding:8px 0;overflow:hidden;white-space:nowrap;position:relative">
-      <div id="ticker-track" style="display:inline-block;animation:tickerScroll 30s linear infinite;font-size:12px;color:var(--muted)"></div>
-    </div>
-  </div>
-</div>
-<style>@keyframes tickerScroll{from{transform:translateX(100%)}to{transform:translateX(-100%)}}
-@keyframes threatFloat{0%,100%{margin-top:0px}50%{margin-top:-8px}}
-@keyframes threatFloat{0%,100%{margin-top:0px}50%{margin-top:-8px}}</style>
-
-</div><!-- /app-body -->
 
 <script>
-// ══ Navigation ══════════════════════════════════════════════
-function showPage(p,navEl){
-  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
-  document.getElementById('page-'+p).classList.add('active');
-  if(p==='galaxy') { if(!galaxyInited) setTimeout(initGalaxyCanvas,50); }
-  if(p==='galaxy' && !galaxyInited) setTimeout(initGalaxyCanvas, 50);
-  if(navEl) navEl.classList.add('active');
+let stats = {queries:0,threats:0,critical:0,clean:0};
+let lastAnalysisData = null;
+
+// ==================== NAVIGATION ====================
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  event.target.classList.add('active');
 }
 
-// ══ Overview ════════════════════════════════════════════════
-async function loadOverview(){
-  // Show fallback data instantly so page never looks broken
-  showFallbackData();
-  try{
-    const s=await fetch('/overview-stats').then(r=>r.json());
-    document.getElementById('kpi-total').textContent=s.total_alerts.value.toLocaleString();
-    document.getElementById('kpi-total-ch').textContent='↑ '+s.total_alerts.change+'%';
-    document.getElementById('kpi-critical').textContent=s.critical_alerts.value;
-    document.getElementById('kpi-critical-ch').textContent='↑ '+s.critical_alerts.change+'%';
-    document.getElementById('kpi-incidents').textContent=s.incidents.value;
-    document.getElementById('kpi-incidents-ch').textContent='↓ '+Math.abs(s.incidents.change)+'%';
-    document.getElementById('kpi-assets').textContent=s.assets_monitored.value.toLocaleString();
-    document.getElementById('kpi-assets-ch').textContent='↑ '+s.assets_monitored.change+'%';
-    document.getElementById('kpi-users').textContent=s.users_monitored.value;
-    document.getElementById('kpi-users-ch').textContent='↑ '+s.users_monitored.change+'%';
-    document.getElementById('last-updated').textContent=s.last_updated;
-  }catch(e){ console.log('Using fallback data'); }
-  try{ await loadAlerts(); }catch(e){}
-  try{ await loadAttackTypes(); }catch(e){}
-  try{ await loadThreats(); }catch(e){}
-  try{ await loadHealth(); }catch(e){}
-  try{ await loadIncidents(); }catch(e){}
-  try{ drawAlertsChart(); }catch(e){}
-  try{ drawSeverityChart(); }catch(e){}
-}
-
-function showFallbackData(){
-  document.getElementById('kpi-total').textContent='2,842';
-  document.getElementById('kpi-total-ch').textContent='↑ 12.4%';
-  document.getElementById('kpi-critical').textContent='120';
-  document.getElementById('kpi-critical-ch').textContent='↑ 8.7%';
-  document.getElementById('kpi-incidents').textContent='23';
-  document.getElementById('kpi-incidents-ch').textContent='↓ 4.3%';
-  document.getElementById('kpi-assets').textContent='1,897';
-  document.getElementById('kpi-assets-ch').textContent='↑ 6.2%';
-  document.getElementById('kpi-users').textContent='532';
-  document.getElementById('kpi-users-ch').textContent='↑ 3.1%';
-  document.getElementById('last-updated').textContent='Live';
-
-  // Fallback alerts feed
-  const feed=document.getElementById('alerts-feed');
-  if(feed) feed.innerHTML=`
-    <div class="alert-feed-item"><div class="alert-dot alert-dot-critical"></div><div style="flex:1"><div class="alert-title">Malware detected on workstation-23</div><div class="alert-meta">192.168.1.45</div></div><div class="alert-time">10:24 AM</div></div>
-    <div class="alert-feed-item"><div class="alert-dot alert-dot-high"></div><div style="flex:1"><div class="alert-title">Brute force attack detected</div><div class="alert-meta">203.0.113.25</div></div><div class="alert-time">10:21 AM</div></div>
-    <div class="alert-feed-item"><div class="alert-dot alert-dot-medium"></div><div style="flex:1"><div class="alert-title">Suspicious login attempt</div><div class="alert-meta">172.16.5.10</div></div><div class="alert-time">10:18 AM</div></div>
-    <div class="alert-feed-item"><div class="alert-dot alert-dot-high"></div><div style="flex:1"><div class="alert-title">Unusual outbound connection</div><div class="alert-meta">198.51.100.8</div></div><div class="alert-time">10:15 AM</div></div>
-    <div class="alert-feed-item"><div class="alert-dot alert-dot-low"></div><div style="flex:1"><div class="alert-title">New device added to network</div><div class="alert-meta">192.168.1.88</div></div><div class="alert-time">10:12 AM</div></div>`;
-
-  // Fallback attack types
-  const at=document.getElementById('attack-types');
-  if(at) at.innerHTML=`
-    <div class="attack-item"><div class="attack-name">Malware</div><div class="attack-bar-wrap"><div class="attack-bar" style="width:31%;background:#FF6B6B"></div></div><div class="attack-count">812</div></div>
-    <div class="attack-item"><div class="attack-name">Phishing</div><div class="attack-bar-wrap"><div class="attack-bar" style="width:23%;background:#FF9F43"></div></div><div class="attack-count">601</div></div>
-    <div class="attack-item"><div class="attack-name">Brute Force</div><div class="attack-bar-wrap"><div class="attack-bar" style="width:16%;background:#FFE66D"></div></div><div class="attack-count">423</div></div>
-    <div class="attack-item"><div class="attack-name">Exploitation</div><div class="attack-bar-wrap"><div class="attack-bar" style="width:12%;background:#4ECDC4"></div></div><div class="attack-count">320</div></div>
-    <div class="attack-item"><div class="attack-name">DDoS</div><div class="attack-bar-wrap"><div class="attack-bar" style="width:8%;background:#A29BFE"></div></div><div class="attack-count">210</div></div>`;
-
-  // Fallback active threats
-  const thr=document.getElementById('active-threats');
-  if(thr) thr.innerHTML=`
-    <div class="threat-item"><div class="threat-name">Qakbot Malware</div><span class="badge badge-critical">Critical</span><div class="threat-count">23<span class="threat-delta up">+3</span></div></div>
-    <div class="threat-item"><div class="threat-name">C2 Communication</div><span class="badge badge-critical">Critical</span><div class="threat-count">17<span class="threat-delta up">+1</span></div></div>
-    <div class="threat-item"><div class="threat-name">Lateral Movement</div><span class="badge badge-high">High</span><div class="threat-count">12<span class="threat-delta dn">-2</span></div></div>
-    <div class="threat-item"><div class="threat-name">Data Exfiltration</div><span class="badge badge-medium">Medium</span><div class="threat-count">8<span class="threat-delta dn">0</span></div></div>`;
-
-  // Fallback health
-  const hg=document.getElementById('health-grid');
-  if(hg) hg.innerHTML=`
-    <div class="health-item"><div class="health-icon">🛡️</div><div><div class="health-name">SIEM</div><div class="health-status op">Operational</div></div></div>
-    <div class="health-item"><div class="health-icon">🛡️</div><div><div class="health-name">EDR</div><div class="health-status op">Operational</div></div></div>
-    <div class="health-item"><div class="health-icon">🛡️</div><div><div class="health-name">Firewall</div><div class="health-status op">Operational</div></div></div>
-    <div class="health-item"><div class="health-icon">🛡️</div><div><div class="health-name">Threat Intel</div><div class="health-status op">Operational</div></div></div>`;
-
-  // Fallback incidents table
-  const itb=document.getElementById('incidents-tbody');
-  if(itb) itb.innerHTML=`
-    <tr><td style="font-family:var(--mono);font-size:11px;color:var(--muted)">INC-0521</td><td style="font-size:13px;font-weight:500">Ransomware detection on host</td><td><span class="badge badge-critical">Critical</span></td><td><span class="status-badge status-inprogress">In Progress</span></td><td style="font-size:12px;color:var(--muted)">Jun 21, 10:23 AM</td><td style="font-size:12px;color:var(--muted)">Alice Chen</td></tr>
-    <tr><td style="font-family:var(--mono);font-size:11px;color:var(--muted)">INC-0520</td><td style="font-size:13px;font-weight:500">Data exfiltration attempt</td><td><span class="badge badge-high">High</span></td><td><span class="status-badge status-investigating">Investigating</span></td><td style="font-size:12px;color:var(--muted)">Jun 20, 09:15 PM</td><td style="font-size:12px;color:var(--muted)">Bob Smith</td></tr>
-    <tr><td style="font-family:var(--mono);font-size:11px;color:var(--muted)">INC-0519</td><td style="font-size:13px;font-weight:500">Phishing campaign detected</td><td><span class="badge badge-medium">Medium</span></td><td><span class="status-badge status-resolved">Resolved</span></td><td style="font-size:12px;color:var(--muted)">Jun 19, 04:42 PM</td><td style="font-size:12px;color:var(--muted)">Carol Wu</td></tr>`;
-
-  // Fallback full incidents
-  const fitb=document.getElementById('incidents-full-tbody');
-  if(fitb) fitb.innerHTML=itb?itb.innerHTML:'';
-
-  // Fallback severity chart total
-  const dt=document.getElementById('donut-total');
-  if(dt) dt.textContent='2,842';
-
-  // Fallback severity legend
-  const sl=document.getElementById('severity-legend');
-  if(sl) sl.innerHTML=`
-    <div class="donut-legend-item"><div class="dl-dot" style="background:#FF6B6B"></div><span class="dl-label">Critical</span><span class="dl-count">120</span><span class="dl-pct">(4.2%)</span></div>
-    <div class="donut-legend-item"><div class="dl-dot" style="background:#FF9F43"></div><span class="dl-label">High</span><span class="dl-count">482</span><span class="dl-pct">(17%)</span></div>
-    <div class="donut-legend-item"><div class="dl-dot" style="background:#FFE66D"></div><span class="dl-label">Medium</span><span class="dl-count">1,286</span><span class="dl-pct">(45.3%)</span></div>
-    <div class="donut-legend-item"><div class="dl-dot" style="background:#4ECDC4"></div><span class="dl-label">Low</span><span class="dl-count">954</span><span class="dl-pct">(33.5%)</span></div>`;
-
-  // Draw charts with static data
-  drawStaticCharts();
-}
-
-function drawStaticCharts(){
-  try{
-    const canvas=document.getElementById('alerts-chart');
-    if(!canvas) return;
-    const W=canvas.parentElement.offsetWidth||800, H=160;
-    canvas.width=W; canvas.height=H;
-    const ctx=canvas.getContext('2d');
-    const vals=[45,62,48,71,55,88,65,79,58,95,72,61,84,68,90,74,83,69,97,78,86,63,91,75];
-    const pad={t:10,r:10,b:30,l:40};
-    const cw=W-pad.l-pad.r, ch=H-pad.t-pad.b;
-    const max=Math.max(...vals), min=Math.min(...vals);
-    ctx.clearRect(0,0,W,H);
-    for(let i=0;i<=4;i++){const y=pad.t+ch*(1-i/4);ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1;ctx.stroke();}
-    const grad=ctx.createLinearGradient(0,pad.t,0,H-pad.b);
-    grad.addColorStop(0,'rgba(78,205,196,.3)');grad.addColorStop(1,'rgba(78,205,196,.0)');
-    ctx.fillStyle=grad;ctx.beginPath();
-    vals.forEach((v,i)=>{const x=pad.l+cw*i/(vals.length-1);const y=pad.t+ch*(1-(v-min)/(max-min));i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
-    ctx.lineTo(pad.l+cw,H-pad.b);ctx.lineTo(pad.l,H-pad.b);ctx.closePath();ctx.fill();
-    ctx.strokeStyle='var(--accent)';ctx.lineWidth=2;ctx.beginPath();
-    vals.forEach((v,i)=>{const x=pad.l+cw*i/(vals.length-1);const y=pad.t+ch*(1-(v-min)/(max-min));i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
-    ctx.stroke();
-  }catch(e){}
-
-  try{
-    const canvas=document.getElementById('severity-chart');
-    if(!canvas) return;
-    canvas.width=130;canvas.height=130;
-    const ctx=canvas.getContext('2d');
-    const segs=[{pct:4.2,color:'#FF6B6B'},{pct:17,color:'#FF9F43'},{pct:45.3,color:'#FFE66D'},{pct:33.5,color:'#4ECDC4'}];
-    let angle=-Math.PI/2;
-    segs.forEach(s=>{const sweep=2*Math.PI*s.pct/100;ctx.beginPath();ctx.moveTo(65,65);ctx.arc(65,65,50,angle,angle+sweep);ctx.closePath();ctx.fillStyle=s.color;ctx.fill();angle+=sweep;});
-    ctx.beginPath();ctx.arc(65,65,34,0,2*Math.PI);ctx.fillStyle='#1D2D44';ctx.fill();
-  }catch(e){}
-}
-
-async function loadAlerts(){
-  const al=await fetch('/recent-alerts').then(r=>r.json());
-  const feed=document.getElementById('alerts-feed');
-  if(feed) feed.innerHTML=al.alerts.slice(0,5).map(a=>`
-    <div class="alert-feed-item">
-      <div class="alert-dot alert-dot-${a.severity.toLowerCase()}"></div>
-      <div style="flex:1"><div class="alert-title">${a.title}</div><div class="alert-meta">${a.source} • ${a.ip}</div></div>
-      <div class="alert-time">${a.time}</div>
-    </div>`).join('');
-  const atb=document.getElementById('alerts-full-tbody');
-  if(atb) atb.innerHTML=al.alerts.map(a=>`<tr>
-    <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">${a.id}</td>
-    <td style="font-size:13px;font-weight:500">${a.title}</td>
-    <td style="color:var(--muted);font-size:12px">${a.source}</td>
-    <td style="font-family:var(--mono);font-size:12px;color:var(--muted)">${a.ip}</td>
-    <td><span class="badge badge-${a.severity.toLowerCase()}">${a.severity}</span></td>
-    <td style="font-size:12px;color:var(--muted)">${a.time}</td>
-    <td><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="checkIPFn('${a.ip}')">Analyze</button></td>
-  </tr>`).join('');
-}
-
-async function loadAttackTypes(){
-  const at=await fetch('/attack-types').then(r=>r.json());
-  const el=document.getElementById('attack-types');
-  if(el) el.innerHTML=at.attack_types.slice(0,5).map(t=>`
-    <div class="attack-item"><div class="attack-name">${t.name}</div><div class="attack-bar-wrap"><div class="attack-bar" style="width:${t.pct}%;background:${t.color}"></div></div><div class="attack-count">${t.count}</div></div>`).join('');
-  const tiat=document.getElementById('ti-attack-types');
-  if(tiat) tiat.innerHTML=at.attack_types.map(t=>`
-    <div class="attack-item"><div class="attack-name">${t.name}</div><div class="attack-bar-wrap"><div class="attack-bar" style="width:${t.pct}%;background:${t.color}"></div></div><div class="attack-count">${t.count}</div></div>`).join('');
-}
-
-async function loadThreats(){
-  const thr=await fetch('/active-threats').then(r=>r.json());
-  const el=document.getElementById('active-threats');
-  if(el) el.innerHTML=thr.threats.map(t=>`
-    <div class="threat-item"><div class="threat-name">${t.name}</div><span class="badge badge-${t.severity.toLowerCase()}">${t.severity}</span><div class="threat-count">${t.count}<span class="threat-delta ${t.delta.startsWith('+')?'up':'dn'}">${t.delta}</span></div></div>`).join('');
-  const titi=document.getElementById('ti-threats');
-  if(titi) titi.innerHTML=el?el.innerHTML:'';
-}
-
-async function loadHealth(){
-  const sh=await fetch('/system-health').then(r=>r.json());
-  const el=document.getElementById('health-grid');
-  if(el) el.innerHTML=sh.systems.map(s=>`
-    <div class="health-item"><div class="health-icon">🛡️</div><div><div class="health-name">${s.name}</div><div class="health-status ${s.status==='Operational'?'op':'deg'}">${s.status}</div></div></div>`).join('');
-}
-
-async function loadIncidents(){
-  const inc=await fetch('/recent-incidents').then(r=>r.json());
-  const itb=document.getElementById('incidents-tbody');
-  if(itb) itb.innerHTML=inc.incidents.map(i=>`<tr>
-    <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">${i.id}</td>
-    <td style="font-size:13px;font-weight:500">${i.title}</td>
-    <td><span class="badge badge-${i.severity.toLowerCase()}">${i.severity}</span></td>
-    <td><span class="status-badge status-${i.status.toLowerCase().replace(' ','')}">${i.status}</span></td>
-    <td style="font-size:12px;color:var(--muted)">${i.created}</td>
-    <td style="font-size:12px;color:var(--muted)">${i.assigned}</td>
-  </tr>`).join('');
-  const fitb=document.getElementById('incidents-full-tbody');
-  if(fitb) fitb.innerHTML=inc.incidents.map(i=>`<tr>
-    <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">${i.id}</td>
-    <td style="font-size:13px;font-weight:500">${i.title}</td>
-    <td><span class="badge badge-${i.severity.toLowerCase()}">${i.severity}</span></td>
-    <td><span class="status-badge status-${i.status.toLowerCase().replace(' ','')}">${i.status}</span></td>
-    <td style="font-size:12px;color:var(--muted)">${i.created}</td>
-    <td style="font-size:12px;color:var(--muted)">${i.assigned}</td>
-    <td><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px">View</button></td>
-  </tr>`).join('');
-}
-
-async function drawAlertsChart(){
-  try{
-    const d=await fetch('/alerts-chart').then(r=>r.json());
-    const canvas=document.getElementById('alerts-chart');
-    if(!canvas) return;
-    const W=canvas.parentElement.offsetWidth||800,H=160;
-    canvas.width=W;canvas.height=H;
-    const ctx=canvas.getContext('2d');
-    const vals=d.data.map(x=>x.count);
-    const labels=d.data.map(x=>x.time);
-    const pad={t:10,r:10,b:30,l:40};
-    const cw=W-pad.l-pad.r,ch=H-pad.t-pad.b;
-    const max=Math.max(...vals),min=Math.min(...vals);
-    ctx.clearRect(0,0,W,H);
-    for(let i=0;i<=4;i++){const y=pad.t+ch*(1-i/4);ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1;ctx.stroke();}
-    const grad=ctx.createLinearGradient(0,pad.t,0,H-pad.b);
-    grad.addColorStop(0,'rgba(78,205,196,.3)');grad.addColorStop(1,'rgba(78,205,196,.0)');
-    ctx.fillStyle=grad;ctx.beginPath();
-    vals.forEach((v,i)=>{const x=pad.l+cw*i/(vals.length-1);const y=pad.t+ch*(1-(v-min)/(max-min||1));i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
-    ctx.lineTo(pad.l+cw,H-pad.b);ctx.lineTo(pad.l,H-pad.b);ctx.closePath();ctx.fill();
-    ctx.strokeStyle='var(--accent)';ctx.lineWidth=2;ctx.beginPath();
-    vals.forEach((v,i)=>{const x=pad.l+cw*i/(vals.length-1);const y=pad.t+ch*(1-(v-min)/(max-min||1));i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
-    ctx.stroke();
-    ctx.fillStyle='rgba(136,153,170,.7)';ctx.font='10px sans-serif';ctx.textAlign='center';
-    [0,6,12,18,23].forEach(i=>{if(labels[i]) ctx.fillText(labels[i],pad.l+cw*i/(vals.length-1),H-8);});
-  }catch(e){ drawStaticCharts(); }
-}
-
-async function drawSeverityChart(){
-  try{
-    const d=await fetch('/severity-dist').then(r=>r.json());
-    const canvas=document.getElementById('severity-chart');
-    if(!canvas) return;
-    canvas.width=130;canvas.height=130;
-    const ctx=canvas.getContext('2d');
-    let angle=-Math.PI/2;
-    d.data.forEach(s=>{const sweep=2*Math.PI*s.pct/100;ctx.beginPath();ctx.moveTo(65,65);ctx.arc(65,65,50,angle,angle+sweep);ctx.closePath();ctx.fillStyle=s.color;ctx.fill();angle+=sweep;});
-    ctx.beginPath();ctx.arc(65,65,34,0,2*Math.PI);ctx.fillStyle='#1D2D44';ctx.fill();
-    const dt=document.getElementById('donut-total');
-    if(dt) dt.textContent=d.total.toLocaleString();
-    const sl=document.getElementById('severity-legend');
-    if(sl) sl.innerHTML=d.data.map(s=>`<div class="donut-legend-item"><div class="dl-dot" style="background:${s.color}"></div><span class="dl-label">${s.label}</span><span class="dl-count">${s.count.toLocaleString()}</span><span class="dl-pct">(${s.pct}%)</span></div>`).join('');
-  }catch(e){}
-}
-
-);
-    // Hole
-    ctx.beginPath();ctx.arc(cx,cy,ir,0,2*Math.PI);ctx.fillStyle='#1D2D44';ctx.fill();
-    document.getElementById('donut-total').textContent=d.total.toLocaleString();
-    document.getElementById('severity-legend').innerHTML=d.data.map(s=>`
-      <div class="donut-legend-item">
-        <div class="dl-dot" style="background:${s.color}"></div>
-        <span class="dl-label">${s.label}</span>
-        <span class="dl-count">${s.count.toLocaleString()}</span>
-        <span class="dl-pct">(${s.pct}%)</span>
-      </div>`).join('');
-  }catch(e){}
-}
-
-// ══ Chat ════════════════════════════════════════════════════
-let cstats={q:0,t:0,c:0,cl:0};
-function ts(){return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
-
-function addMsg(html,type){
-  const c=document.getElementById('chat-msgs');
-  const r=document.createElement('div');
-  r.className='msg-row '+type;
-  const av=type==='user'?'👤':'🛡️';
-  const who=type==='user'?'You':'SOC Assistant';
-  r.innerHTML=`<div class="msg-avatar">${av}</div><div><div class="msg-bubble">${html}</div><div class="msg-meta">${who} • ${ts()}</div></div>`;
-  c.appendChild(r);c.scrollTop=c.scrollHeight;
-}
-
-async function sendMessage(){
-  const inp=document.getElementById('chat-input');
-  const msg=inp.value.trim();if(!msg) return;
-  inp.value='';addMsg(msg,'user');
-  document.getElementById('typing').classList.add('on');
-  try{
-    const r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg})});
-    const d=await r.json();
-    document.getElementById('typing').classList.remove('on');
-    renderChat(d);updateCStats(d);
-  }catch(e){
-    document.getElementById('typing').classList.remove('on');
-    addMsg('❌ Could not reach server. Make sure app.py is running.','assistant');
-  }
-}
-
-function quickSend(m){document.getElementById('chat-input').value=m;sendMessage()}
-
-function renderChat(d){
-  const sc={Critical:'sev-critical',High:'sev-high',Medium:'sev-medium',Low:'sev-low'}[d.severity]||'sev-low';
-  let h=`<span class="sev-badge ${sc}">● ${d.severity}</span>`;
-  if(d.threat_intel&&d.threat_intel.length>0){
-    h+='<br><strong>🔍 Threat Intelligence</strong><br>';
-    d.threat_intel.forEach(t=>{
-      const c=t.verdict==='Malicious'?'var(--primary)':t.verdict==='Suspicious'?'var(--warning)':'var(--accent)';
-      h+=`<span style="color:${c}">● ${t.value}: ${t.verdict} (${t.malicious} detections)</span><br>`;
+// ==================== CHAT ====================
+async function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  addMessage(msg, 'user');
+  document.getElementById('thinking').style.display = 'flex';
+  try {
+    const resp = await fetch('http://localhost:5002/chat', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({message:msg})
     });
+    const data = await resp.json();
+    document.getElementById('thinking').style.display = 'none';
+    displayResponse(data);
+    updateStats(data);
+  } catch(e) {
+    document.getElementById('thinking').style.display = 'none';
+    addMessage('❌ Could not reach SOC server. Make sure app.py is running on port 5002.','assistant');
   }
-  if(d.rag_context) h+=`<br><strong>📚 Knowledge Base</strong><br><span style="color:var(--muted);font-size:13px;line-height:1.6;white-space:pre-wrap">${d.rag_context}</span>`;
-  addMsg(h,'assistant');
-  if(d.recommendations&&d.recommendations.length)
-    document.getElementById('recs').innerHTML=d.recommendations.map(r=>`<div class="rec-item"><span style="color:var(--accent)">→</span>${r}</div>`).join('');
 }
 
-function updateCStats(d){
-  cstats.q++;
-  if(d.threat_intel&&d.threat_intel.some(t=>t.verdict==='Malicious'))cstats.t++;
-  if(d.severity==='Critical')cstats.c++;
-  if(d.severity==='Low')cstats.cl++;
-  document.getElementById('s-q').textContent=cstats.q;
-  document.getElementById('s-t').textContent=cstats.t;
-  document.getElementById('s-c').textContent=cstats.c;
-  document.getElementById('s-cl').textContent=cstats.cl;
+function quickSend(msg) { document.getElementById('chat-input').value=msg; sendMessage(); }
+
+function addMessage(text,type) {
+  const div = document.createElement('div');
+  div.className=`msg ${type}`;
+  div.innerHTML=text;
+  const c = document.getElementById('chat-messages');
+  c.appendChild(div);
+  c.scrollTop=c.scrollHeight;
 }
 
-async function checkIOC(){
-  const val=document.getElementById('ioc-input').value.trim();if(!val) return;
+function displayResponse(data) {
+  const sevClass={Critical:'sev-critical',High:'sev-high',Medium:'sev-medium',Low:'sev-low'}[data.severity]||'sev-low';
+  let html=`<span class="severity-badge ${sevClass}">● ${data.severity}</span><br>`;
+  if (data.threat_intel&&data.threat_intel.length>0) {
+    html+='<strong>🔍 Threat Intelligence Results:</strong><br>';
+    data.threat_intel.forEach(t=>{
+      const color=t.verdict==='Malicious'?'#f87171':t.verdict==='Suspicious'?'#fbbf24':'#4ade80';
+      html+=`<span style="color:${color}">● ${t.value}: ${t.verdict} (${t.malicious} malicious detections)</span><br>`;
+    });
+    html+='<br>';
+  }
+  if (data.rag_context) html+=`<strong>📚 Knowledge Base:</strong><br><span style="color:#94a3b8;font-size:12px">${data.rag_context.substring(0,400)}...</span>`;
+  addMessage(html,'assistant');
+  if (data.recommendations&&data.recommendations.length)
+    document.getElementById('recommendations').innerHTML=data.recommendations.map(r=>`<div class="rec-item">${r}</div>`).join('');
+}
+
+function updateStats(data) {
+  stats.queries++;
+  if (data.threat_intel&&data.threat_intel.some(t=>t.verdict==='Malicious')) stats.threats++;
+  if (data.severity==='Critical') stats.critical++;
+  if (data.severity==='Low') stats.clean++;
+  document.getElementById('stat-queries').textContent=stats.queries;
+  document.getElementById('stat-threats').textContent=stats.threats;
+  document.getElementById('stat-critical').textContent=stats.critical;
+  document.getElementById('stat-clean').textContent=stats.clean;
+}
+
+async function checkIOC() {
+  const val=document.getElementById('ioc-input').value.trim();
+  if (!val) return;
   const box=document.getElementById('ioc-result');
-  box.style.display='block';box.innerHTML='⏳ Checking…';
-  try{
-    const r=await fetch('/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({indicator:val})});
-    const d=await r.json();
-    const c=d.verdict==='Malicious'?'var(--primary)':d.verdict==='Suspicious'?'var(--warning)':'var(--accent)';
-    box.innerHTML=`<div style="font-weight:700;color:${c};margin-bottom:8px">${d.verdict} — ${d.value}</div>
-      <div class="ioc-row"><span style="color:var(--muted)">Malicious</span><span style="color:var(--primary);font-weight:600">${d.malicious}</span></div>
-      <div class="ioc-row"><span style="color:var(--muted)">Suspicious</span><span style="color:var(--warning);font-weight:600">${d.suspicious}</span></div>
-      <div class="ioc-row"><span style="color:var(--muted)">Harmless</span><span style="color:var(--accent);font-weight:600">${d.harmless}</span></div>
-      ${d.country?`<div class="ioc-row"><span style="color:var(--muted)">Country</span><span>${d.country}</span></div>`:''}`;
-  }catch(e){box.innerHTML='❌ Server not reachable'}
+  box.style.display='block'; box.className='result-box'; box.innerHTML='⏳ Checking VirusTotal...';
+  try {
+    const resp=await fetch('http://localhost:5002/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({indicator:val})});
+    const data=await resp.json();
+    const cls=data.verdict==='Malicious'?'malicious':data.verdict==='Suspicious'?'suspicious':'clean';
+    box.className=`result-box ${cls}`;
+    const color=data.verdict==='Malicious'?'#f87171':data.verdict==='Suspicious'?'#fbbf24':'#4ade80';
+    box.innerHTML=`<div style="font-weight:600;color:${color};margin-bottom:6px">${data.verdict} — ${data.value}</div>
+      <div class="result-row"><span style="color:#475569">Malicious</span><span style="color:#f87171">${data.malicious}</span></div>
+      <div class="result-row"><span style="color:#475569">Suspicious</span><span style="color:#fbbf24">${data.suspicious}</span></div>
+      <div class="result-row"><span style="color:#475569">Harmless</span><span style="color:#4ade80">${data.harmless}</span></div>
+      ${data.country?`<div class="result-row"><span style="color:#475569">Country</span><span>${data.country}</span></div>`:''}`;
+  } catch(e) { box.innerHTML='❌ Server not reachable'; }
 }
 
-async function checkIPFn(ip){
-  showPage('chat',document.querySelector('.nav-item:nth-child(6)'));
-  document.getElementById('chat-input').value=`Analyze this IP address: ${ip}`;
-  sendMessage();
-}
+document.getElementById('chat-input').addEventListener('keypress',e=>{if(e.key==='Enter')sendMessage();});
 
-async function tiLookup(){
-  const val=document.getElementById('ti-ioc-input').value.trim();if(!val) return;
-  const box=document.getElementById('ti-result');
-  box.style.display='block';box.innerHTML='⏳ Checking VirusTotal…';
-  try{
-    const r=await fetch('/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({indicator:val})});
-    const d=await r.json();
-    const c=d.verdict==='Malicious'?'var(--primary)':d.verdict==='Suspicious'?'var(--warning)':'var(--accent)';
-    box.innerHTML=`<div style="font-weight:700;color:${c};margin-bottom:10px;font-size:14px">${d.verdict} — ${d.value}</div>
-      <div class="ioc-row"><span style="color:var(--muted)">Malicious detections</span><span style="color:var(--primary);font-weight:700">${d.malicious}</span></div>
-      <div class="ioc-row"><span style="color:var(--muted)">Suspicious</span><span style="color:var(--warning);font-weight:700">${d.suspicious}</span></div>
-      <div class="ioc-row"><span style="color:var(--muted)">Harmless</span><span style="color:var(--accent);font-weight:700">${d.harmless}</span></div>
-      ${d.country?`<div class="ioc-row"><span style="color:var(--muted)">Country</span><span>${d.country}</span></div>`:''}`;
-  }catch(e){box.innerHTML='❌ Server not reachable'}
-}
-
-document.getElementById('chat-input').addEventListener('keypress',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}});
-
-// ══ Log Analyzer ════════════════════════════════════════════
-let lastLogData=null;
-
-function loadSampleLogs(){
-  document.getElementById('log-input').value=
-`192.168.1.105 - - [23/Jun/2026:10:15:01] "POST /login HTTP/1.1" 401 -
+// ==================== LOG ANALYZER ====================
+function loadSampleLogs() {
+  document.getElementById('log-input').value=`192.168.1.105 - - [23/Jun/2026:10:15:01] "POST /login HTTP/1.1" 401 -
 192.168.1.105 - - [23/Jun/2026:10:15:02] Failed password for root from 192.168.1.105 port 22
 192.168.1.105 - - [23/Jun/2026:10:15:03] Failed password for admin from 192.168.1.105 port 22
-10.0.0.55 - - [23/Jun/2026:10:16:01] "GET /search?q=UNION SELECT * FROM users-- HTTP/1.1" 200 4523
+192.168.1.105 - - [23/Jun/2026:10:15:04] Failed password for ubuntu from 192.168.1.105 port 22
+10.0.0.55 - - [23/Jun/2026:10:16:01] "GET /search?q=UNION SELECT * FROM users--  HTTP/1.1" 200 4523
 10.0.0.55 - - [23/Jun/2026:10:16:05] "GET /page?file=../../etc/passwd HTTP/1.1" 200 1024
+10.0.0.55 - - [23/Jun/2026:10:16:08] "GET /page?file=../../etc/shadow HTTP/1.1" 200 512
 192.168.1.200 - - [23/Jun/2026:11:22:01] "GET /admin HTTP/1.1" 404 -
-172.16.0.99 - - [23/Jun/2026:11:45:01] "GET /shell.php?cmd=ls HTTP/1.1" 200 -`;
+192.168.1.200 - - [23/Jun/2026:11:22:03] "GET /wp-admin HTTP/1.1" 404 -
+192.168.1.200 - - [23/Jun/2026:11:22:05] "GET /phpmyadmin HTTP/1.1" 404 -
+172.16.0.99 - - [23/Jun/2026:11:45:01] "GET /shell.php?cmd=ls HTTP/1.1" 200 -
+172.16.0.99 - - [23/Jun/2026:11:45:03] "GET /shell.php?cmd=cat /etc/passwd HTTP/1.1" 200 -`;
 }
 
-function sc(s){return{Critical:'var(--primary)',High:'var(--warning)',Medium:'var(--yellow)',Low:'var(--accent)',Clean:'var(--accent)'}[s]||'var(--accent)'}
-
-async function analyzeLogs(){
-  const logs=document.getElementById('log-input').value.trim();
-  if(!logs){alert('Please paste some logs first!');return}
-  const p=document.getElementById('log-results');
-  p.innerHTML='<div class="empty"><div class="e-title">⏳ Analyzing…</div></div>';
-  try{
-    const r=await fetch('/analyze-logs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({logs})});
-    const d=await r.json();lastLogData=d;renderLogs(d);
+async function analyzeLogs() {
+  const logs = document.getElementById('log-input').value.trim();
+  if (!logs) return alert('Please paste some logs first!');
+  const resultsPanel = document.getElementById('log-results');
+  resultsPanel.innerHTML = '<div style="text-align:center;padding:40px;color:#475569"><div style="font-size:24px;margin-bottom:8px">⏳</div>Analyzing logs...</div>';
+  try {
+    const resp = await fetch('http://localhost:5002/analyze-logs',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({logs})
+    });
+    const data = await resp.json();
+    lastAnalysisData = data;
+    displayLogResults(data, logs);
     document.getElementById('report-btn').style.display='block';
-  }catch(e){p.innerHTML='<div class="empty" style="color:var(--primary)">❌ Server not reachable</div>'}
-}
-
-function renderLogs(d){
-  let h=`<div class="sumbar">
-    <div style="flex:1"><div style="font-size:14px;font-weight:700;color:${sc(d.overall_severity)}">${d.overall_severity} — ${d.summary}</div></div>
-    <div class="sstat"><div class="num" style="color:var(--accent)">${d.log_lines_analyzed}</div><div class="lbl">Lines</div></div>
-    <div class="sstat"><div class="num" style="color:var(--primary)">${d.threat_count}</div><div class="lbl">Threats</div></div>
-    <div class="sstat"><div class="num" style="color:var(--muted)">${d.ips_found?d.ips_found.length:0}</div><div class="lbl">IPs</div></div>
-  </div>`;
-  if(d.ips_found&&d.ips_found.length>0)
-    h+=`<div style="margin-bottom:20px"><div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">IPs Found</div>${d.ips_found.map(ip=>`<span class="ip-chip">${ip}</span>`).join('')}</div>`;
-  if(d.timeline_html)
-    h+=`<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--r3);padding:16px;margin-bottom:20px">${d.timeline_html}</div>`;
-  if(d.findings&&d.findings.length>0){
-    h+=`<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px">🚨 Attack Findings (${d.findings.length})</div>`;
-    d.findings.forEach(f=>{h+=`<div class="finding-card ${f.severity}">
-      <div class="f-title">${f.attack_type} <span style="font-size:11px;font-weight:400;color:var(--muted)">(${f.occurrences} occurrence${f.occurrences>1?'s':''})</span></div>
-      <div class="f-detail">${f.description}</div><div class="f-rec">💡 ${f.recommendation}</div></div>`;});
-  }else{
-    h+=`<div style="background:rgba(78,205,196,.1);border:1px solid rgba(78,205,196,.3);border-radius:var(--r2);padding:16px;text-align:center;color:var(--accent);font-weight:600">✅ No attack patterns detected — logs appear clean!</div>`;
+  } catch(e) {
+    resultsPanel.innerHTML='<div style="padding:20px;color:#ef4444">❌ Could not reach server. Make sure app.py is running.</div>';
   }
-  document.getElementById('log-results').innerHTML=h;
 }
 
-async function downloadReport(){
-  if(!lastLogData) return;
-  const rd={analyst:'SOC Analyst',overall_severity:lastLogData.overall_severity,summary:lastLogData.summary,threat_intel:[],log_findings:lastLogData.findings||[],recommendations:lastLogData.findings?lastLogData.findings.map(f=>f.recommendation):['No action required']};
-  try{
-    const r=await fetch('/generate-report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(rd)});
-    const blob=await r.blob();
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');a.href=url;a.download='threat_report.pdf';a.click();URL.revokeObjectURL(url);
-  }catch(e){alert('Could not generate report.')}
-}
+function displayLogResults(data, logs) {
+  const sevColors={Critical:'#ef4444',High:'#fb923c',Medium:'#fbbf24',Low:'#4ade80',Clean:'#4ade80'};
+  const sev = data.overall_severity;
+  const sevColor = sevColors[sev]||'#94a3b8';
 
-// ══ URL Scanner ═════════════════════════════════════════════
-function toggleSamples(){const e=document.getElementById('url-samples');e.style.display=e.style.display==='none'?'block':'none'}
-function setAndScan(u){document.getElementById('url-input').value=u;scanURL()}
-
-async function scanURL(){
-  const url=document.getElementById('url-input').value.trim();
-  if(!url){alert('Please enter a URL!');return}
-  const p=document.getElementById('url-results');
-  p.innerHTML='<div class="empty"><div class="e-title">⏳ Scanning…</div></div>';
-  try{
-    const r=await fetch('/scan-url',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})});
-    const d=await r.json();renderURL(d);
-  }catch(e){p.innerHTML='<div class="empty" style="color:var(--primary)">❌ Server not reachable</div>'}
-}
-
-function renderURL(d){
-  const c=d.verdict==='Phishing'?'var(--primary)':d.verdict==='Suspicious'?'var(--warning)':'var(--accent)';
-  const bg=d.verdict==='Phishing'?'rgba(255,107,107,.1)':d.verdict==='Suspicious'?'rgba(255,159,67,.1)':'rgba(78,205,196,.1)';
-  const bc=d.verdict==='Phishing'?'rgba(255,107,107,.3)':d.verdict==='Suspicious'?'rgba(255,159,67,.3)':'rgba(78,205,196,.3)';
-  const ml=d.ml_analysis||{};
-  let h=`<div class="risk-card">
-    <div style="display:flex;align-items:center;justify-content:space-between">
-      <div><div style="font-size:11px;color:var(--muted);font-weight:500;margin-bottom:4px">Risk Score</div>
-      <div style="font-size:40px;font-weight:800;color:${c};line-height:1">${d.risk_score}%</div></div>
-      <div style="padding:8px 20px;border-radius:20px;font-size:15px;font-weight:700;background:${bg};color:${c};border:1px solid ${bc}">${d.verdict}</div>
-    </div>
-    <div class="risk-track"><div class="risk-fill" style="width:${d.risk_score}%;background:${c}"></div></div>
-    <div style="font-family:var(--mono);font-size:12px;color:var(--muted);word-break:break-all">${d.url}</div>
-  </div>
-  <div class="card" style="margin-bottom:16px">
-    <div class="card-title"><div class="ct-left">🤖 ML Feature Analysis</div></div>
-    <table class="f-table"><thead><tr>
-      <td style="color:var(--muted);font-size:11px;font-weight:600">Feature</td>
-      <td style="color:var(--muted);font-size:11px;font-weight:600">Value</td>
-      <td style="color:var(--muted);font-size:11px;font-weight:600">Status</td>
-    </tr></thead><tbody>${[
-      ['URL Length',ml.url_length+' chars',ml.url_length<75],
-      ['Uses HTTPS',ml.has_https?'Yes':'No',ml.has_https==1],
-      ['IP as Hostname',ml.has_ip?'⚠️ Yes':'No',ml.has_ip==0],
-      ['Special Chars',ml.special_chars,ml.special_chars<=4],
-      ['Digits in URL',ml.digits,ml.digits<=5],
-      ['Suspicious Keywords',ml.suspicious_keywords?.length?ml.suspicious_keywords.join(', '):'None',!ml.suspicious_keywords?.length],
-      ['Subdomain Depth',ml.subdomain_depth,ml.subdomain_depth<=2],
-      ['URL Entropy',ml.entropy,ml.entropy<4.5],
-    ].map(([n,v,g])=>`<tr><td style="color:var(--muted)">${n}</td><td style="font-family:var(--mono);font-size:12px">${v}</td><td style="color:${g?'var(--accent)':'var(--primary)'};font-weight:600">${g?'✓':'✗'}</td></tr>`).join('')}</tbody></table>
-  </div>`;
-  if(d.threat_intel&&!d.threat_intel.error){
-    const vt=d.threat_intel;
-    const vc=vt.verdict==='Malicious'?'var(--primary)':vt.verdict==='Suspicious'?'var(--warning)':'var(--accent)';
-    h+=`<div class="card" style="margin-bottom:16px">
-      <div class="card-title"><div class="ct-left">🌐 VirusTotal Intelligence</div></div>
-      <div style="font-size:14px;font-weight:700;color:${vc};margin-bottom:12px">${vt.verdict} — ${vt.value}</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-        <div style="text-align:center;background:var(--bg);border-radius:var(--r2);padding:10px"><div style="font-size:20px;font-weight:700;color:var(--primary)">${vt.malicious}</div><div style="font-size:10px;color:var(--muted)">Malicious</div></div>
-        <div style="text-align:center;background:var(--bg);border-radius:var(--r2);padding:10px"><div style="font-size:20px;font-weight:700;color:var(--warning)">${vt.suspicious}</div><div style="font-size:10px;color:var(--muted)">Suspicious</div></div>
-        <div style="text-align:center;background:var(--bg);border-radius:var(--r2);padding:10px"><div style="font-size:20px;font-weight:700;color:var(--accent)">${vt.harmless}</div><div style="font-size:10px;color:var(--muted)">Harmless</div></div>
+  let html = `
+    <div style="background:#0f1629;border:1px solid #1e2d4a;border-radius:8px;padding:14px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:16px;font-weight:700;color:${sevColor}">${sev} — ${data.summary}</div>
       </div>
-      ${vt.country?`<div style="font-size:12px;color:var(--muted);margin-top:10px">Country: ${vt.country}</div>`:''}
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <div class="summary-stat"><div class="num" style="color:#38bdf8">${data.log_lines_analyzed}</div><div class="lbl">Lines Analyzed</div></div>
+        <div class="summary-stat"><div class="num" style="color:#ef4444">${data.threat_count}</div><div class="lbl">Threats Found</div></div>
+        <div class="summary-stat"><div class="num" style="color:#94a3b8">${data.ips_found?data.ips_found.length:0}</div><div class="lbl">IPs Found</div></div>
+      </div>
     </div>`;
-  }
-  h+=`<div class="card"><div class="card-title"><div class="ct-left">🚨 Why this verdict?</div></div>${
-    (d.reasons||[]).map(r=>`<div class="reason ${r.severity}"><div class="r-flag">${r.flag}</div><div class="r-detail">${r.detail}</div></div>`).join('')}</div>`;
-  document.getElementById('url-results').innerHTML=h;
-}
 
-// ══ Crime Scene ══════════════════════════════════════════════
-function loadCrimeSample(){
-  document.getElementById('crime-input').value=
-`SECURITY INCIDENT REPORT — Case #2026-0623
-Timestamp: 2026-06-23 10:15:01 UTC
-
-[PHASE 1 - INITIAL ACCESS]
-User john.doe@company.com received phishing email from admin@paypa1-secure.tk
-Subject: URGENT: Your account will be suspended in 24 hours
-Malicious URL: http://paypa1-secure.tk/verify/account?token=abc123
-
-[PHASE 2 - CREDENTIAL ATTACKS]
-Failed password for root from 185.220.101.45 port 22
-Failed password for admin from 185.220.101.45 port 22
-authentication failure from 185.220.101.45
-
-[PHASE 3 - MALWARE]
-PowerShell execution on WORKSTATION-042
-powershell.exe -ExecutionPolicy Bypass -enc SGVsbG8gV29ybGQ=
-Malware: Trojan.GenericKD.46587234
-Hash: a87ff679a2f3e71d9181a67b7542122c
-
-[PHASE 4 - C2 COMMUNICATION]
-Outbound TCP to 45.33.32.156:4444 — reverse shell
-Beaconing every 60 seconds
-
-[PHASE 5 - LATERAL MOVEMENT]
-SMB: WORKSTATION-042 to FILESERVER-01
-Mimikatz credential dumping detected
-
-[PHASE 6 - EXFILTRATION]
-847MB transferred to 91.108.4.1
-POST 950000 bytes to http://paste.ee/upload`;
-}
-
-// Random slight rotation for pinboard cards
-function randRot(){return(Math.random()*4-2).toFixed(1)+'deg'}
-
-async function analyzeCrimeScene(){
-  const incident=document.getElementById('crime-input').value.trim();
-  if(!incident){alert('Please paste incident data first!');return}
-  const btn=document.getElementById('cs-btn');
-  document.getElementById('cs-btn-text').textContent='⏳ Analyzing…';btn.disabled=true;
-  document.getElementById('cs-empty').style.display='none';
-  document.getElementById('cs-results').style.display='flex';
-  document.getElementById('cs-verdict').innerHTML='<span style="color:var(--muted);font-size:16px">Reconstructing attack chain…</span>';
-  document.getElementById('cs-cards').innerHTML='<div style="color:var(--muted);padding:20px">Processing evidence…</div>';
-  try{
-    const r=await fetch('/crime-scene',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({incident})});
-    const d=await r.json();renderCrime(d);
-  }catch(e){
-    document.getElementById('cs-verdict').innerHTML='<span style="color:var(--primary)">❌ Server not reachable</span>';
-  }
-  btn.disabled=false;document.getElementById('cs-btn-text').textContent='🔍 Investigate Scene';
-}
-
-function renderCrime(data){
-  const SC={
-    Critical:{accent:'#FF6B6B',bg:'rgba(255,107,107,.15)',border:'rgba(255,107,107,.3)',text:'#FF6B6B',note:'#ffe8e8'},
-    High:    {accent:'#FF9F43',bg:'rgba(255,159,67,.15)',border:'rgba(255,159,67,.3)',text:'#FF9F43',note:'#fff3e0'},
-    Medium:  {accent:'#FFE66D',bg:'rgba(255,230,109,.15)',border:'rgba(255,230,109,.3)',text:'#FFE66D',note:'#fffde7'},
-    Low:     {accent:'#4ECDC4',bg:'rgba(78,205,196,.15)',border:'rgba(78,205,196,.3)',text:'#4ECDC4',note:'#e0f7f6'},
-  };
-  const TL=['#FF6B6B','#4ECDC4','#FFE66D','#A29BFE','#FD79A8','#FF9F43','#74B9FF','#55EFC4'];
-
-  const ve=document.getElementById('cs-verdict');
-  const cmap={'#22c55e':'var(--accent)','#ef4444':'var(--primary)','#f97316':'var(--warning)','#64748b':'var(--muted)'};
-  ve.style.color=cmap[data.case_color]||'var(--yellow)';
-  let i=0;ve.textContent='';
-  const ti=setInterval(()=>{ve.textContent+=data.case_status[i++];if(i>=data.case_status.length)clearInterval(ti)},50);
-  document.getElementById('cs-summary').textContent=data.case_summary;
-  // Add TOP SECRET stamp for critical cases
-  const existingStamp = document.querySelector('.top-secret-stamp');
-  if(existingStamp) existingStamp.remove();
-  if(data.critical_count > 0) {
-    const stamp = document.createElement('div');
-    stamp.className = 'top-secret-stamp';
-    stamp.textContent = data.critical_count >= 2 ? '⛔ TOP SECRET — ACTIVE BREACH' : '🔒 CLASSIFIED — UNDER INVESTIGATION';
-    document.getElementById('cs-verdict').after(stamp);
+  if (data.ips_found&&data.ips_found.length>0) {
+    html+=`<div style="margin-bottom:14px"><div style="font-size:12px;font-weight:600;color:#64748b;margin-bottom:6px">IPs FOUND IN LOGS</div>`;
+    data.ips_found.forEach(ip=>{html+=`<span class="ip-tag">${ip}</span>`;});
+    html+='</div>';
   }
 
-  const iocs=data.iocs;
-  const totalIOCs=Object.values(iocs).reduce((s,a)=>s+a.length,0);
-  document.getElementById('cs-n-ev').textContent=data.evidence_count;
-  document.getElementById('cs-n-cr').textContent=data.critical_count;
-  document.getElementById('cs-n-io').textContent=totalIOCs;
+  if (data.timeline_html) {
+    html+=`<div style="background:#0f1629;border:1px solid #1e2d4a;border-radius:8px;padding:14px;margin-bottom:14px">${data.timeline_html}</div>`;
+  }
 
-  // Evidence cards — polaroid style with random rotation
-  const grid=document.getElementById('cs-cards');grid.innerHTML='';
-  const cardEls=[];
-  data.evidence_cards.forEach((card,idx)=>{
-    const c=SC[card.severity]||SC.Low;
-    const rot=randRot();
-    const el=document.createElement('div');
-    el.className='ev-card';
-    el.style.cssText=`--rot:${rot};animation-delay:${idx*.12}s`;
-    el.innerHTML=`
-      <div class="ev-photo">
-        <span class="ev-icon">${card.icon}</span>
-        <div class="ev-label">${card.label}</div>
-      </div>
-      <div class="ev-info" style="background:${c.note}">
-        <div class="ev-badge"><span style="font-size:10px;padding:2px 10px;border-radius:20px;font-weight:700;background:${c.bg};color:${c.text};border:1px solid ${c.border}">${card.severity}</span></div>
-        <div class="ev-count">${card.occurrences} signal${card.occurrences>1?'s':''}</div>
-        <div class="ev-qs">${card.questions.slice(0,2).map(q=>`<div class="ev-q"><span style="color:${c.text}">?</span>${q}</div>`).join('')}</div>
+  if (data.findings&&data.findings.length>0) {
+    html+=`<div style="font-size:13px;font-weight:600;color:#e2e8f0;margin-bottom:10px">🚨 Attack Findings (${data.findings.length})</div>`;
+    data.findings.forEach(f=>{
+      const fc=sevColors[f.severity]||'#94a3b8';
+      html+=`<div class="finding-card ${f.severity}">
+        <div class="finding-title" style="color:${fc}">${f.attack_type} <span style="font-size:11px;font-weight:400;color:#64748b">(${f.occurrences} occurrence${f.occurrences>1?'s':''})</span></div>
+        <div class="finding-detail">${f.description}</div>
+        <div class="finding-rec">💡 ${f.recommendation}</div>
       </div>`;
-    el.addEventListener('mouseenter',()=>{el.style.filter=`drop-shadow(0 0 16px ${c.accent}60)`;});
-    // Add evidence number badge
-    const numBadge = document.createElement('div');
-    numBadge.className = 'ev-number';
-    numBadge.textContent = idx + 1;
-    el.appendChild(numBadge);
-    el.addEventListener('mouseleave',()=>{el.style.filter='';});
-    grid.appendChild(el);
-    cardEls.push(el);
-  });
-
-  // Draw red string connections between cards after layout
-  setTimeout(()=>drawRedStrings(cardEls,data.evidence_cards),600);
-
-  // Timeline
-  if(data.attack_timeline&&data.attack_timeline.length>0){
-    document.getElementById('cs-tl-wrap').style.display='block';
-    document.getElementById('cs-tl').innerHTML=data.attack_timeline.map((step,i)=>`
-      <div class="cs-tl-item" style="animation-delay:${data.evidence_cards.length*.12+i*.15}s">
-        <div class="cs-tl-dot" style="color:${TL[i%TL.length]};background:${TL[i%TL.length]}"></div>
-        <div class="cs-tl-box" style="border-left-color:${TL[i%TL.length]}">
-          <div class="cs-tl-step" style="color:${TL[i%TL.length]}">Step ${i+1}</div>
-          <div class="cs-tl-text">${step}</div>
-        </div>
-      </div>`).join('');
-    document.getElementById('cs-mini-tl').style.display='block';
-    document.getElementById('cs-mini-steps').innerHTML=data.attack_timeline.map((s,i)=>
-      `<div class="mini-step" style="border-left-color:${TL[i%TL.length]}">${s}</div>`).join('');
-  }
-
-  // IOC grid
-  const iocCfg=[
-    {key:'ips',label:'IP Addresses',icon:'🌐',color:'var(--primary)'},
-    {key:'emails',label:'Emails',icon:'📧',color:'var(--warning)'},
-    {key:'urls',label:'URLs',icon:'🔗',color:'var(--purple)'},
-    {key:'hashes',label:'Hashes',icon:'#️⃣',color:'var(--accent)'},
-  ];
-  if(totalIOCs>0){
-    document.getElementById('cs-ioc-wrap').style.display='block';
-    document.getElementById('cs-iocs-panel').style.display='block';
-    const ig=document.getElementById('cs-ioc-grid');const si=document.getElementById('cs-iocs-side');
-    ig.innerHTML='';si.innerHTML='';
-    iocCfg.forEach(({key,label,icon,color})=>{
-      if(!iocs[key]||!iocs[key].length) return;
-      ig.innerHTML+=`<div class="ioc-card">
-        <div class="ioc-card-h"><span>${icon}</span><span class="ioc-card-lbl" style="color:${color}">${label}</span>
-        <span class="ioc-card-count" style="background:rgba(255,255,255,.05);color:${color}">${iocs[key].length}</span></div>
-        ${iocs[key].slice(0,4).map(v=>`<span class="ioc-val">${v.length>40?v.substring(0,40)+'…':v}</span>`).join('')}</div>`;
-      si.innerHTML+=`<div style="margin-bottom:10px">
-        <div class="ioc-side-lbl" style="color:${color}">${icon} ${label}</div>
-        ${iocs[key].slice(0,2).map(v=>`<span class="ioc-side-val">${v.length>28?v.substring(0,28)+'…':v}</span>`).join('')}</div>`;
     });
-  }
-
-  // Actions
-  const et=data.evidence_cards.map(e=>e.type);
-  const acts=[];
-  if(et.includes('phishing_email'))    acts.push({icon:'📧',text:'Block sender domain in email gateway',color:'var(--primary)',pri:'IMMEDIATE'});
-  if(et.includes('suspicious_login'))  acts.push({icon:'🔐',text:'Reset all credentials and enforce MFA',color:'var(--primary)',pri:'IMMEDIATE'});
-  if(et.includes('malware_execution')) acts.push({icon:'💻',text:'Isolate affected workstation immediately',color:'var(--primary)',pri:'IMMEDIATE'});
-  if(et.includes('c2_communication'))  acts.push({icon:'📡',text:'Block C2 IPs at firewall and DNS',color:'var(--warning)',pri:'URGENT'});
-  if(et.includes('lateral_movement'))  acts.push({icon:'↔️',text:'Audit all internal host connections',color:'var(--warning)',pri:'URGENT'});
-  if(et.includes('data_exfiltration')) acts.push({icon:'📤',text:'Quantify data loss, notify stakeholders',color:'var(--yellow)',pri:'HIGH'});
-  acts.push({icon:'📋',text:'Preserve all logs for forensic analysis',color:'var(--accent)',pri:'HIGH'});
-  acts.push({icon:'📄',text:'Generate report and notify SOC lead',color:'var(--accent)',pri:'STANDARD'});
-
-  const pc={IMMEDIATE:'var(--primary)',URGENT:'var(--warning)',HIGH:'var(--yellow)',STANDARD:'var(--accent)'};
-  document.getElementById('cs-act-wrap').style.display='block';
-  document.getElementById('cs-act-grid').innerHTML=acts.map((a,i)=>
-    `<div class="act-card" style="border-left-color:${pc[a.pri]};animation-delay:${i*.07}s">
-      <span style="font-size:18px;flex-shrink:0">${a.icon}</span>
-      <div><div class="act-pri" style="color:${pc[a.pri]}">${a.pri}</div><div class="act-text">${a.text}</div></div>
-    </div>`).join('');
-}
-
-// Draw red string connections between evidence cards
-function drawRedStrings(cardEls,cards){
-  const svg=document.getElementById('string-svg');
-  if(!svg||cardEls.length<2) return;
-  const boardRect=svg.parentElement.getBoundingClientRect();
-  svg.innerHTML='';
-  svg.setAttribute('viewBox',`0 0 ${boardRect.width} ${boardRect.height}`);
-
-  // Connect critical cards with red string
-  const critCards=cardEls.filter((_,i)=>cards[i]&&(cards[i].severity==='Critical'||cards[i].severity==='High'));
-  if(critCards.length<2) return;
-
-  for(let i=0;i<critCards.length-1;i++){
-    const r1=critCards[i].getBoundingClientRect();
-    const r2=critCards[i+1].getBoundingClientRect();
-    const x1=r1.left+r1.width/2-boardRect.left;
-    const y1=r1.top+r1.height/2-boardRect.top;
-    const x2=r2.left+r2.width/2-boardRect.left;
-    const y2=r2.top+r2.height/2-boardRect.top;
-    const mx=(x1+x2)/2;
-    const my=Math.min(y1,y2)-30;
-
-    // String path with slight sag
-    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-    path.setAttribute('d',`M${x1},${y1} Q${mx},${my} ${x2},${y2}`);
-    path.setAttribute('stroke','#FF6B6B');
-    path.setAttribute('stroke-width','1.5');
-    path.setAttribute('fill','none');
-    path.setAttribute('opacity','0.6');
-    path.setAttribute('stroke-dasharray','4,3');
-
-    // Animate string drawing
-    const len=path.getTotalLength?400:400;
-    path.style.strokeDasharray=len;
-    path.style.strokeDashoffset=len;
-    path.style.animation=`drawString 1s ease ${i*.3}s forwards`;
-    svg.appendChild(path);
-  }
-
-  // Add keyframe animation for string drawing
-  if(!document.getElementById('string-style')){
-    const style=document.createElement('style');
-    style.id='string-style';
-    style.textContent=`@keyframes drawString{to{stroke-dashoffset:0}}`;
-    document.head.appendChild(style);
-  }
-}
-
-// ══ Auto-scan URL from PhishGuard ════════════════════════════
-window.addEventListener('load',()=>{
-  loadOverview();
-  setupFilterChips();
-  const p=new URLSearchParams(window.location.search);
-  const u=p.get('url');
-  if(u){
-    setTimeout(()=>{
-      showPage('urlscan',document.querySelector('.nav-item:nth-child(8)'));
-      document.getElementById('url-input').value=decodeURIComponent(u);
-      scanURL();
-    },1000);
-  }
-
-  // Filter chips
-  document.querySelectorAll('.filter-chip').forEach(chip=>{
-    chip.addEventListener('click',()=>{
-      chip.closest('.filter-bar').querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
-      chip.classList.add('active');
-    });
-  });
-
-  // Global search
-  document.getElementById('global-search').addEventListener('keypress',e=>{
-    if(e.key==='Enter'){
-      const q=e.target.value.trim();
-      if(q){
-        showPage('chat',document.querySelectorAll('.nav-item')[5]);
-        document.getElementById('chat-input').value=q;
-        sendMessage();
-        e.target.value='';
-      }
-    }
-  });
-});
-
-// ══ CYBER GALAXY (working tab version) ══════════════════════
-
-  if(found){
-    const sevColors={critical:'#FF6B6B',high:'#FF9F43',medium:'#FFE66D',low:'#4ECDC4'};
-    tooltip.innerHTML=`<div style="font-weight:700;margin-bottom:4px">${found.event.icon} ${found.event.label}</div><div style="color:${sevColors[found.event.sev]};font-size:11px;text-transform:uppercase;font-weight:700">${found.event.sev}</div>`;
-    tooltip.style.display='block';
-    tooltip.style.left=Math.min(e.clientX+14,window.innerWidth-240)+'px';
-    tooltip.style.top=(e.clientY-10)+'px';
   } else {
-    tooltip.style.display='none';
+    html+=`<div style="background:#081c0e;border:1px solid #14532d;border-radius:8px;padding:16px;text-align:center;color:#4ade80">✅ No attack patterns detected — logs appear clean!</div>`;
   }
-});
 
-
-// ══ BOOT / SLEEP-RETRY LOGIC ══════════════════════════════════
-
-
-
-// ══ FIXED UI INTERACTIONS ═════════════════════════════════════
-function toggleNotifPanel(e){
-  event.stopPropagation();
-  const p = document.getElementById('notif-panel');
-  p.style.display = p.style.display === 'none' ? 'block' : 'none';
-  document.getElementById('admin-menu').style.display = 'none';
+  document.getElementById('log-results').innerHTML=html;
 }
-function toggleAdminMenu(){
-  event.stopPropagation();
-  const m = document.getElementById('admin-menu');
-  m.style.display = m.style.display === 'none' ? 'block' : 'none';
-  document.getElementById('notif-panel').style.display = 'none';
-}
-document.addEventListener('click', ()=>{
-  const np = document.getElementById('notif-panel');
-  const am = document.getElementById('admin-menu');
-  if(np) np.style.display = 'none';
-  if(am) am.style.display = 'none';
-});
 
-function createNewIncident(){
-  const title = prompt('Incident title:');
-  if(!title) return;
-  const severity = prompt('Severity (Critical / High / Medium / Low):', 'Medium') || 'Medium';
-  const tbody = document.getElementById('incidents-full-tbody') || document.getElementById('incidents-tbody');
-  if(tbody){
-    const row = document.createElement('tr');
-    const sevClass = severity.toLowerCase();
-    row.innerHTML = `
-      <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">INC-NEW-${Math.floor(Math.random()*999)}</td>
-      <td style="font-size:13px;font-weight:500">${title}</td>
-      <td><span class="badge badge-${sevClass}">${severity}</span></td>
-      <td><span class="status-badge status-investigating">Investigating</span></td>
-      <td style="font-size:12px;color:var(--muted)">Just now</td>
-      <td style="font-size:12px;color:var(--muted)">You</td>`;
-    tbody.prepend(row);
+async function downloadReport() {
+  if (!lastAnalysisData) return;
+  const logText = document.getElementById('log-input').value;
+  const reportData = {
+    analyst: "SOC Analyst",
+    overall_severity: lastAnalysisData.overall_severity,
+    summary: lastAnalysisData.summary,
+    threat_intel: [],
+    log_findings: lastAnalysisData.findings||[],
+    recommendations: lastAnalysisData.findings
+      ? lastAnalysisData.findings.map(f=>f.recommendation)
+      : ["No immediate action required"]
+  };
+  try {
+    const resp = await fetch('http://localhost:5002/generate-report',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(reportData)
+    });
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href=url; a.download='threat_report.pdf'; a.click();
+    URL.revokeObjectURL(url);
+  } catch(e) {
+    alert('Could not generate report. Make sure server is running.');
   }
-  alert('✅ Incident created: ' + title);
 }
-
-// Filter chips on Alerts page actually filter the table
-function setupFilterChips(){
-  document.querySelectorAll('.filter-bar .filter-chip').forEach(chip=>{
-    chip.addEventListener('click', ()=>{
-      document.querySelectorAll('.filter-bar .filter-chip').forEach(c=>c.classList.remove('active'));
-      chip.classList.add('active');
-      const filter = chip.textContent.trim();
-      const rows = document.querySelectorAll('#alerts-full-tbody tr');
-      rows.forEach(row=>{
-        if(filter === 'All'){
-          row.style.display = '';
-        } else {
-          const badge = row.querySelector('.badge');
-          const text = row.textContent;
-          const matchesSeverity = badge && badge.textContent.trim() === filter;
-          const matchesType = text.toLowerCase().includes(filter.toLowerCase());
-          row.style.display = (matchesSeverity || matchesType) ? '' : 'none';
-        }
-      });
-    });
-  });
-}
-
-
-// ══ CYBER GALAXY ════════════════════════════════════════════
-const GALAXY_PLANETS = [
-  {label:'Network Security',sub:'899 Nodes',icon:'🔐',color:'#A29BFE',left:'22%',top:'25%',size:58,info:{Type:'Network Security',Nodes:899,Threats:12,Status:'Active'}},
-  {label:'Cloud Security',sub:'1,234 Nodes',icon:'☁️',color:'#06B6D4',left:'72%',top:'18%',size:54,info:{Type:'Cloud Security',Nodes:'1,234',Threats:5,Status:'Active'}},
-  {label:'App Security',sub:'1,764 Nodes',icon:'⚡',color:'#8B5CF6',left:'15%',top:'62%',size:52,info:{Type:'App Security',Nodes:'1,764',Threats:18,Status:'Active'}},
-  {label:'Data Protection',sub:'3,247 Nodes',icon:'🗄️',color:'#F59E0B',left:'46%',top:'74%',size:62,info:{Type:'Data Protection',Nodes:'3,247',Threats:8,Status:'Active'}},
-  {label:'Endpoint Security',sub:'2,453 Nodes',icon:'💻',color:'#10B981',left:'76%',top:'58%',size:54,info:{Type:'Endpoint Security',Nodes:'2,453',Threats:23,Status:'Active'}},
-  {label:'Threat Intel',sub:'1,987 Nodes',icon:'🧠',color:'#EC4899',left:'58%',top:'30%',size:52,info:{Type:'Threat Intel',Nodes:'1,987',Threats:47,Status:'Alert'}},
-];
-const THREAT_EVENTS = [
-  {label:'Brute force on 192.168.1.105',sev:'high',icon:'🔐'},
-  {label:'Malware beacon to 45.33.32.156',sev:'critical',icon:'🦠'},
-  {label:'Suspicious login — admin',sev:'medium',icon:'👤'},
-  {label:'Port scan from 203.0.113.25',sev:'low',icon:'🔭'},
-  {label:'SQL injection attempt blocked',sev:'high',icon:'💉'},
-  {label:'Unusual outbound 847MB',sev:'critical',icon:'📤'},
-  {label:'Phishing email quarantined',sev:'low',icon:'📧'},
-  {label:'C2 connection port 4444',sev:'critical',icon:'📡'},
-  {label:'Privilege escalation attempt',sev:'high',icon:'⬆️'},
-  {label:'Failed VPN auth x14',sev:'medium',icon:'🔒'},
-];
-let galaxyInited=false,galaxyAnimFrame=null,galaxyStars=[],galaxyT=0,selectedGalaxyPlanet=null,galaxyAsteroids=[];
-
-function loadGalaxyData(){
-  if(galaxyAnimFrame) cancelAnimationFrame(galaxyAnimFrame);
-  galaxyInited=false;
-  initGalaxyCanvas();
-}
-
-function initGalaxyCanvas(){
-  const bgC=document.getElementById('galaxy-bg-canvas');
-  const lnC=document.getElementById('galaxy-line-canvas');
-  if(!bgC||!lnC) return;
-  const wrap=bgC.parentElement;
-  bgC.width=wrap.offsetWidth; bgC.height=wrap.offsetHeight;
-  lnC.width=wrap.offsetWidth; lnC.height=wrap.offsetHeight;
-  galaxyStars=[];
-  for(let i=0;i<400;i++){
-    galaxyStars.push({x:Math.random()*bgC.width,y:Math.random()*bgC.height,
-      r:Math.random()*1.6+.3,a:Math.random(),sp:Math.random()*.02+.005,ph:Math.random()*Math.PI*2});
-  }
-  galaxyAsteroids=[];
-  const cx=bgC.width/2,cy=bgC.height/2;
-  const bR=Math.min(bgC.width,bgC.height)*.22;
-  for(let i=0;i<24;i++){
-    galaxyAsteroids.push({angle:(i/24)*Math.PI*2+Math.random()*.2,r:bR+Math.random()*18-9,
-      size:Math.random()*2.5+1,speed:.0015+Math.random()*.001,wobble:Math.random()*Math.PI*2});
-  }
-  placeGalaxyPlanets();
-  placeThreatOrbs();
-  drawGalaxyLines();
-  startTicker();
-  animateGalaxyBg(bgC);
-  galaxyInited=true;
-}
-
-function animateGalaxyBg(canvas){
-  const ctx=canvas.getContext('2d');
-  function frame(){
-    galaxyT+=.005;
-    const cx=canvas.width/2,cy=canvas.height/2;
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-
-    // Background
-    const bg=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(canvas.width,canvas.height)*.7);
-    bg.addColorStop(0,'rgba(40,20,80,.5)');
-    bg.addColorStop(.5,'rgba(15,8,40,.8)');
-    bg.addColorStop(1,'rgba(5,3,15,1)');
-    ctx.fillStyle=bg; ctx.fillRect(0,0,canvas.width,canvas.height);
-
-    // Nebula clouds
-    [{x:cx*.6,y:cy*.6,r:220,c:'rgba(139,92,246,.07)'},{x:cx*1.4,y:cy*.7,r:190,c:'rgba(6,182,212,.05)'},{x:cx*.5,y:cy*1.3,r:170,c:'rgba(236,72,153,.04)'}].forEach(n=>{
-      const g=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,n.r);
-      g.addColorStop(0,n.c); g.addColorStop(1,'transparent');
-      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(n.x,n.y,n.r,0,Math.PI*2); ctx.fill();
-    });
-
-    // Stars
-    galaxyStars.forEach(s=>{
-      const a=.2+.8*Math.abs(Math.sin(galaxyT*s.sp*10+s.ph));
-      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(255,255,255,${a*s.a})`; ctx.fill();
-      if(s.r>1.3){
-        ctx.beginPath(); ctx.arc(s.x,s.y,s.r*3,0,Math.PI*2);
-        ctx.fillStyle=`rgba(255,255,255,${a*.04})`; ctx.fill();
-      }
-    });
-
-    // Spiral arms
-    for(let arm=0;arm<3;arm++){
-      const base=(arm/3)*Math.PI*2;
-      for(let i=0;i<140;i++){
-        const frac=i/140;
-        const r=frac*Math.min(canvas.width,canvas.height)*.36;
-        const angle=base+frac*Math.PI*4.5+galaxyT*.1;
-        const x=cx+Math.cos(angle)*r, y=cy+Math.sin(angle)*r;
-        ctx.beginPath(); ctx.arc(x,y,Math.max(.3,(1-frac)*2.2),0,Math.PI*2);
-        ctx.fillStyle=`rgba(180,130,255,${(1-frac)*.35})`; ctx.fill();
-      }
-    }
-
-    // Galaxy core glow
-    const cg=ctx.createRadialGradient(cx,cy,0,cx,cy,80);
-    cg.addColorStop(0,'rgba(255,255,255,.85)');
-    cg.addColorStop(.1,'rgba(200,160,255,.7)');
-    cg.addColorStop(.3,'rgba(120,60,220,.3)');
-    cg.addColorStop(.7,'rgba(60,20,120,.1)');
-    cg.addColorStop(1,'transparent');
-    ctx.fillStyle=cg; ctx.beginPath(); ctx.arc(cx,cy,80,0,Math.PI*2); ctx.fill();
-
-    // Core pulse rings
-    [40,65,90].forEach((r,i)=>{
-      const pr=r+Math.sin(galaxyT*(1+i*.4))*5;
-      ctx.beginPath(); ctx.arc(cx,cy,pr,0,Math.PI*2);
-      ctx.strokeStyle=`rgba(200,170,255,${.1-i*.025})`; ctx.lineWidth=1.5; ctx.stroke();
-    });
-
-    // Asteroid belt
-    galaxyAsteroids.forEach(a=>{
-      a.angle+=a.speed;
-      const wob=Math.sin(galaxyT*2+a.wobble)*4;
-      const ax=cx+Math.cos(a.angle)*(a.r+wob);
-      const ay=cy+Math.sin(a.angle)*(a.r+wob)*.52;
-      ctx.beginPath(); ctx.arc(ax,ay,a.size,0,Math.PI*2);
-      ctx.fillStyle=`rgba(180,170,155,.55)`; ctx.fill();
-    });
-
-    // Belt ellipse hint
-    ctx.beginPath();
-    ctx.ellipse(cx,cy,Math.min(canvas.width,canvas.height)*.22,Math.min(canvas.width,canvas.height)*.22*.52,0,0,Math.PI*2);
-    ctx.strokeStyle='rgba(255,255,255,.04)'; ctx.lineWidth=12; ctx.stroke();
-
-    // Update live count
-    const el=document.getElementById('galaxy-active-count');
-    if(el) el.textContent=THREAT_EVENTS.length+galaxyAsteroids.length;
-
-    galaxyAnimFrame=requestAnimationFrame(frame);
-  }
-  frame();
-}
-
-function placeGalaxyPlanets(){
-  const layer=document.getElementById('galaxy-planet-layer');
-  if(!layer) return;
-  // Remove only planet nodes, keep orbs
-  layer.querySelectorAll('.planet-node').forEach(e=>e.remove());
-  GALAXY_PLANETS.forEach(p=>{
-    const wrap=document.createElement('div');
-    wrap.className='planet-node';
-    wrap.style.cssText=`position:absolute;left:${p.left};top:${p.top};transform:translate(-50%,-50%);cursor:pointer;display:flex;flex-direction:column;align-items:center;transition:transform .25s;z-index:15`;
-    const sphere=document.createElement('div');
-    sphere.style.cssText=`width:${p.size}px;height:${p.size}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:${p.size*.38}px;background:radial-gradient(circle at 35% 30%,${p.color}ee,${p.color}66);box-shadow:0 0 ${p.size*.6}px ${p.color}70,inset 0 0 ${p.size*.2}px rgba(255,255,255,.15);transition:transform .3s`;
-    sphere.textContent=p.icon;
-    const lbl=document.createElement('div');
-    lbl.style.cssText=`font-size:11px;font-weight:700;color:${p.color};margin-top:8px;text-align:center;text-shadow:0 1px 6px rgba(0,0,0,.9);letter-spacing:.3px`;
-    lbl.textContent=p.label;
-    const sub=document.createElement('div');
-    sub.style.cssText='font-size:10px;color:rgba(255,255,255,.45);margin-top:3px;display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:center';
-    sub.innerHTML=`${p.sub} <span style="background:${p.color}30;color:${p.color};padding:1px 7px;border-radius:8px;font-weight:700;font-size:9px">${p.info.Threats} threats</span>`;
-    wrap.appendChild(sphere); wrap.appendChild(lbl); wrap.appendChild(sub);
-    wrap.addEventListener('mouseenter',()=>{wrap.style.transform='translate(-50%,-50%) scale(1.18)';sphere.style.boxShadow=`0 0 ${p.size*.9}px ${p.color}90`});
-    wrap.addEventListener('mouseleave',()=>{wrap.style.transform='translate(-50%,-50%) scale(1)';sphere.style.boxShadow=`0 0 ${p.size*.6}px ${p.color}70`});
-    wrap.addEventListener('click',()=>showGalaxyInfo(p));
-    layer.appendChild(wrap);
-  });
-}
-
-function placeThreatOrbs(){
-  const layer=document.getElementById('galaxy-planet-layer');
-  if(!layer) return;
-  layer.querySelectorAll('.threat-orb').forEach(e=>e.remove());
-  const sevColors={critical:'#FF6B6B',high:'#FF9F43',medium:'#FFE66D',low:'#4ECDC4'};
-  const sevSize={critical:36,high:30,medium:26,low:22};
-  THREAT_EVENTS.forEach((ev,i)=>{
-    const planet=GALAXY_PLANETS[i%GALAXY_PLANETS.length];
-    const baseX=parseFloat(planet.left);
-    const baseY=parseFloat(planet.top);
-    const angle=(i*43)%360*Math.PI/180;
-    const dist=11+(i%3)*5;
-    const left=Math.max(4,Math.min(94,baseX+Math.cos(angle)*dist));
-    const top=Math.max(8,Math.min(88,baseY+Math.sin(angle)*dist));
-    const c=sevColors[ev.sev];
-    const sz=sevSize[ev.sev];
-    const orb=document.createElement('div');
-    orb.className='threat-orb';
-    orb.style.cssText=`position:absolute;left:${left}%;top:${top}%;transform:translate(-50%,-50%);z-index:18;cursor:pointer;animation:threatFloat ${4+Math.random()*2}s ease-in-out infinite;animation-delay:${Math.random()*2}s;transition:transform .2s`;
-    orb.innerHTML=`<div style="width:${sz}px;height:${sz}px;border-radius:50%;background:radial-gradient(circle at 35% 30%,${c}ee,${c}55);box-shadow:0 0 ${sz*.7}px ${c}80;display:flex;align-items:center;justify-content:center;font-size:${sz*.48}px;border:1.5px solid ${c}90">${ev.icon}</div>`;
-    orb.addEventListener('mouseenter',e=>{
-      orb.style.transform='translate(-50%,-50%) scale(1.35)';
-      orb.style.zIndex='40';
-      showOrbTooltip(e,ev,c);
-    });
-    orb.addEventListener('mousemove',moveOrbTooltip);
-    orb.addEventListener('mouseleave',()=>{
-      orb.style.transform='translate(-50%,-50%) scale(1)';
-      orb.style.zIndex='18';
-      const tt=document.getElementById('meteor-tooltip');
-      if(tt) tt.style.display='none';
-    });
-    orb.addEventListener('click',()=>{
-      showPage('chat',document.querySelector('.nav-item'));
-      document.getElementById('chat-input').value=`Investigate this active threat: ${ev.label} (severity: ${ev.sev})`;
-      sendMessage();
-    });
-    layer.appendChild(orb);
-  });
-}
-
-function showOrbTooltip(e,ev,color){
-  let tt=document.getElementById('meteor-tooltip');
-  if(!tt) return;
-  const sevLabel={critical:'CRITICAL — Act immediately',high:'HIGH — Investigate soon',medium:'MEDIUM — Monitor closely',low:'LOW — Informational'}[ev.sev];
-  tt.innerHTML=`<div style="font-weight:700;margin-bottom:5px;font-size:13px">${ev.icon} ${ev.label}</div><div style="color:${color};font-size:11px;font-weight:700">${sevLabel}</div><div style="color:var(--muted);font-size:10px;margin-top:5px">Click to investigate in AI Chat →</div>`;
-  tt.style.display='block'; tt.style.borderColor=color;
-  moveOrbTooltip(e);
-}
-function moveOrbTooltip(e){
-  const tt=document.getElementById('meteor-tooltip');
-  if(!tt) return;
-  tt.style.left=Math.min(e.clientX+16,window.innerWidth-260)+'px';
-  tt.style.top=Math.max(10,e.clientY-60)+'px';
-}
-
-function showGalaxyInfo(p){
-  selectedGalaxyPlanet=p;
-  const panel=document.getElementById('galaxy-info-panel');
-  document.getElementById('gi-title').textContent=p.label;
-  document.getElementById('gi-sub').textContent=p.sub;
-  document.getElementById('gi-stats').innerHTML=Object.entries(p.info).map(([k,v])=>`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px"><span style="color:var(--muted)">${k}</span><span style="color:var(--text);font-weight:600">${v}</span></div>`).join('');
-  if(panel) panel.style.display='block';
-}
-
-function investigateFromGalaxy(){
-  if(!selectedGalaxyPlanet) return;
-  showPage('chat',document.querySelector('.nav-item'));
-  document.getElementById('chat-input').value=`Tell me about current threats in ${selectedGalaxyPlanet.label} — ${selectedGalaxyPlanet.info.Threats} threats detected, status: ${selectedGalaxyPlanet.info.Status}`;
-  sendMessage();
-}
-
-function drawGalaxyLines(){
-  const canvas=document.getElementById('galaxy-line-canvas');
-  if(!canvas) return;
-  const ctx=canvas.getContext('2d');
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  const cx=canvas.width/2,cy=canvas.height/2;
-  GALAXY_PLANETS.forEach(p=>{
-    const px=parseFloat(p.left)/100*canvas.width;
-    const py=parseFloat(p.top)/100*canvas.height;
-    const g=ctx.createLinearGradient(cx,cy,px,py);
-    g.addColorStop(0,'rgba(255,255,255,.04)');
-    g.addColorStop(1,p.color+'40');
-    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(px,py);
-    ctx.strokeStyle=g; ctx.lineWidth=1; ctx.setLineDash([3,7]); ctx.stroke(); ctx.setLineDash([]);
-  });
-}
-
-function startTicker(){
-  const track=document.getElementById('ticker-track');
-  if(!track) return;
-  const sevColors={critical:'#FF6B6B',high:'#FF9F43',medium:'#FFE66D',low:'#4ECDC4'};
-  track.innerHTML=THREAT_EVENTS.map(e=>`<span style="color:${sevColors[e.sev]};margin:0 16px">${e.icon} ${e.label}</span>`).join('<span style="color:rgba(255,255,255,.15)"> • </span>')+THREAT_EVENTS.map(e=>`<span style="color:${sevColors[e.sev]};margin:0 16px">${e.icon} ${e.label}</span>`).join('<span style="color:rgba(255,255,255,.15)"> • </span>');
-}
-
-
-// ══ UI BUTTON INTERACTIONS ══════════════════════════════════
-function toggleNotifPanel(){
-  event.stopPropagation();
-  const p=document.getElementById('notif-panel');
-  const m=document.getElementById('admin-menu');
-  if(m) m.style.display='none';
-  if(p) p.style.display=p.style.display==='none'?'block':'none';
-}
-function toggleAdminMenu(){
-  event.stopPropagation();
-  const m=document.getElementById('admin-menu');
-  const p=document.getElementById('notif-panel');
-  if(p) p.style.display='none';
-  if(m) m.style.display=m.style.display==='none'?'block':'none';
-}
-document.addEventListener('click',()=>{
-  const p=document.getElementById('notif-panel');
-  const m=document.getElementById('admin-menu');
-  if(p) p.style.display='none';
-  if(m) m.style.display='none';
-});
-function createNewIncident(){
-  const title=prompt('Incident title:');
-  if(!title) return;
-  const severity=prompt('Severity (Critical / High / Medium / Low):','Medium')||'Medium';
-  const tbody=document.getElementById('incidents-full-tbody')||document.getElementById('incidents-tbody');
-  if(tbody){
-    const row=document.createElement('tr');
-    row.innerHTML=`
-      <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">INC-NEW-${Math.floor(Math.random()*999)}</td>
-      <td style="font-size:13px;font-weight:500">${title}</td>
-      <td><span class="badge badge-${severity.toLowerCase()}">${severity}</span></td>
-      <td><span class="status-badge status-investigating">Investigating</span></td>
-      <td style="font-size:12px;color:var(--muted)">Just now</td>
-      <td style="font-size:12px;color:var(--muted)">You</td>
-      <td><button class="btn btn-ghost" style="font-size:11px;padding:4px 10px">View</button></td>`;
-    tbody.prepend(row);
-  }
-  alert('Incident created: '+title);
-}
-function setupFilterChips(){
-  document.querySelectorAll('.filter-bar .filter-chip').forEach(chip=>{
-    chip.addEventListener('click',()=>{
-      document.querySelectorAll('.filter-bar .filter-chip').forEach(c=>c.classList.remove('active'));
-      chip.classList.add('active');
-      const filter=chip.textContent.trim();
-      document.querySelectorAll('#alerts-full-tbody tr').forEach(row=>{
-        if(filter==='All'){ row.style.display=''; return; }
-        const badge=row.querySelector('.badge');
-        row.style.display=(badge&&badge.textContent.trim()===filter)||row.textContent.toLowerCase().includes(filter.toLowerCase())?'':'none';
-      });
-    });
-  });
-}
-
 </script>
 </body>
 </html>
+<script>
+// Auto-check if server is ready every 2 seconds
+async function waitForServer() {
+  const dot = document.querySelector('.status-dot');
+  dot.style.background = '#f59e0b';
+  dot.style.boxShadow = '0 0 6px #f59e0b';
+  
+  let attempts = 0;
+  const interval = setInterval(async () => {
+    attempts++;
+    try {
+      const r = await fetch('http://localhost:5002/');
+      if (r.ok) {
+        clearInterval(interval);
+        dot.style.background = '#22c55e';
+        dot.style.boxShadow = '0 0 6px #22c55e';
+        console.log('Server connected!');
+      }
+    } catch(e) {
+      console.log(`Waiting for server... attempt ${attempts}`);
+    }
+    if (attempts > 30) clearInterval(interval); // stop after 60 seconds
+  }, 2000);
+}
+waitForServer();
+</script>
