@@ -1,61 +1,59 @@
-CYBERSECURITY THREAT KNOWLEDGE BASE
+# RANSOMWARE
+Ransomware is malicious software that encrypts a victim's files and demands payment in cryptocurrency for the decryption key. Common families include LockBit, REvil, Conti, BlackCat, and Ryuk. Initial access is most often gained through phishing emails, exposed RDP ports, or unpatched VPN appliances. Once inside, ransomware performs reconnaissance, disables backups and shadow copies, exfiltrates sensitive data for double extortion, then encrypts files across the network. Detection indicators include mass file renaming, sudden CPU spikes, deletion of volume shadow copies using vssadmin delete shadows, and connections to known ransomware C2 infrastructure. Response: isolate infected hosts immediately, do not power off machines as this preserves memory for forensics, identify patient zero, verify backups are intact and offline, do not pay the ransom unless absolutely necessary, restore from clean backups, and report to law enforcement.
 
-=== MALWARE TYPES ===
-Ransomware: Malware that encrypts victim files and demands payment for decryption key. Common examples include WannaCry, REvil, LockBit. Indicators include unusual file encryption activity, ransom notes, and C2 communications.
+# PHISHING
+Phishing is a social engineering attack where attackers impersonate trusted entities to steal credentials, install malware, or trick victims into fraudulent payments. Variants include spear phishing which is targeted at specific individuals, whaling which targets executives, smishing via SMS, vishing via voice calls, and business email compromise. Red flags include urgent language, mismatched sender domains, suspicious links, unexpected attachments, and requests for credentials or money transfers. Technical indicators include lookalike domains using typosquatting, newly registered domains, SPF DKIM DMARC failures. Defense includes email filtering, DMARC enforcement, user awareness training, and multi-factor authentication.
 
-Trojan: Malware disguised as legitimate software. Trojans create backdoors for attackers. Common indicators include unexpected network connections, new admin accounts, and disabled security tools.
+# SQL INJECTION
+SQL injection occurs when attackers insert malicious SQL code into application input fields passed directly to a database. Classic indicators in logs include single quotes, UNION SELECT statements, OR 1=1 patterns, comment markers, and stacked queries. Types include in-band where results are returned directly, blind using boolean or time-based inference, and out-of-band using DNS or HTTP. Impact ranges from data theft to full database takeover to remote code execution. Prevention requires parameterized queries and prepared statements, input validation, least-privilege database accounts, and a web application firewall.
 
-Keylogger: Records keystrokes to steal passwords and sensitive data. Indicators include unusual processes, suspicious registry entries, and unexpected data exfiltration.
+# BRUTE FORCE AND CREDENTIAL ATTACKS
+Brute force attacks systematically try many password combinations against login endpoints. Variants include dictionary attacks using common passwords, credential stuffing using breached credentials, and password spraying which tries one password against many accounts to avoid lockouts. Log indicators include many failed logins from one IP in a short window, sequential username attempts, logins outside business hours, and a successful login immediately after many failures. Mitigation includes account lockout policies, rate limiting, CAPTCHA, multi-factor authentication, and monitoring for impossible travel logins from geographically distant locations in short time.
 
-Rootkit: Hides malware presence from OS and security tools. Very difficult to detect. Indicators include system call hooking, hidden processes, and modified kernel modules.
+# COMMAND AND CONTROL C2
+C2 infrastructure lets attackers remotely control compromised systems after infection. Techniques include HTTP HTTPS beaconing that blends with normal traffic, DNS tunneling that encodes data in DNS queries, and use of legitimate cloud services like Slack Discord or GitHub to evade detection. Indicators include regular beaconing intervals to unfamiliar domains, traffic to known malicious IPs, unusual user agents, connections on non-standard ports like 4444 which is the Metasploit default, port 1337, or port 31337, and DNS queries with high entropy. Frameworks like Cobalt Strike Metasploit and Sliver are commonly used. Defense includes network segmentation, egress filtering, and DNS monitoring.
 
-Botnet: Network of infected computers controlled by attacker. Used for DDoS attacks, spam, and crypto mining. Indicators include unusual outbound traffic, IRC connections, and high CPU usage.
+# LATERAL MOVEMENT
+After initial compromise attackers move laterally to reach valuable targets. Techniques include Pass the Hash reusing NTLM hashes without cracking passwords, Pass the Ticket abusing Kerberos tickets, PsExec and WMI for remote execution, and RDP. Mimikatz is used to dump credentials from memory in the LSASS process. Indicators include unusual authentication between hosts, service account usage outside normal scope, new admin accounts, and SMB or RDP connections between workstations that do not normally communicate. Defense includes network segmentation, disabling unnecessary admin shares, LAPS for local admin password rotation, and monitoring privileged accounts.
 
-=== ATTACK TYPES ===
-SQL Injection: Attacker injects malicious SQL code into web forms to access databases. Indicators in logs include unusual SQL syntax, error messages, and unexpected data access patterns.
+# DATA EXFILTRATION
+Data exfiltration is the unauthorized transfer of data outside an organization. Methods include direct upload to cloud storage, email attachments, DNS tunneling, encrypted channels to attacker infrastructure, and physical media. Indicators include unusually large outbound transfers, transfers during off hours, connections to paste sites like Pastebin, and compressed or encrypted archives created before transfer. DLP tools, egress monitoring, and anomaly detection on outbound traffic help detect this. Response involves identifying what data left, assessing regulatory notification obligations under GDPR or HIPAA, and tightening egress controls.
 
-Cross Site Scripting XSS: Attacker injects malicious scripts into web pages. Indicators include script tags in input fields, unusual redirects, and stolen session cookies.
+# MALWARE TYPES
+Trojans disguise themselves as legitimate software while creating backdoors. Worms self-replicate across networks without user interaction. Rootkits hide their presence by modifying the operating system or kernel. Keyloggers record keystrokes to steal credentials. Fileless malware operates entirely in memory using legitimate tools like PowerShell avoiding traditional antivirus detection. Botnets are networks of compromised machines controlled by an attacker for spam DDoS or cryptocurrency mining. Ransomware encrypts files and demands payment. Spyware monitors user activity and exfiltrates data silently.
 
-Phishing: Deceptive emails or websites trick users into revealing credentials. Indicators include suspicious sender domains, urgency language, and links to lookalike websites.
+# INCIDENT RESPONSE
+The incident response lifecycle has six phases. Preparation means having tools playbooks and trained staff ready. Identification means detecting and confirming an incident using logs alerts and threat intelligence. Containment means short-term isolation of affected systems and long-term patching and rebuilding. Eradication means removing the root cause malware and backdoors. Recovery means restoring systems to production with heightened monitoring. Lessons learned means a post-incident review documenting what happened and updating playbooks. Key metrics are MTTD mean time to detect and MTTR mean time to respond. Document everything, preserve evidence, and notify stakeholders according to your incident response plan.
 
-Man in the Middle MITM: Attacker intercepts communications between two parties. Indicators include SSL certificate warnings, unusual ARP traffic, and unexpected DNS changes.
+# NETWORK PORTS
+Port 22 SSH is targeted for brute force against Linux servers. Port 80 and 443 are web traffic targets for application attacks. Port 445 SMB was the vector for WannaCry and EternalBlue and is used for lateral movement. Port 3389 RDP is targeted for brute force and is a common ransomware entry point. Port 1433 MSSQL and 3306 MySQL expose databases if internet-facing. Port 4444 is the default Metasploit listener and almost always indicates malicious activity. Port 53 DNS can be abused for tunneling. Port 8080 and 8443 are common C2 communication ports. Port 6667 IRC was used historically for botnet command and control.
 
-DDoS: Distributed Denial of Service floods target with traffic causing outage. Indicators include massive traffic spikes, multiple source IPs, and service unavailability.
+# MITRE ATT&CK
+MITRE ATT&CK is a knowledge base of adversary tactics and techniques. Tactics represent the adversary goal while techniques represent how they achieve it. T1566 is Phishing for initial access. T1190 is Exploit Public Facing Application. T1059 is Command and Scripting Interpreter covering PowerShell and cmd. T1053 is Scheduled Task for persistence. T1003 is OS Credential Dumping using Mimikatz. T1110 is Brute Force. T1021 is Remote Services covering RDP SMB and SSH for lateral movement. T1071 is Application Layer Protocol for C2. T1486 is Data Encrypted for Impact covering ransomware. T1041 is Exfiltration Over C2 Channel. T1070 is Indicator Removal for defense evasion. Use ATT&CK to map detections to adversary behavior and find coverage gaps.
 
-Brute Force: Automated password guessing attack. Indicators in logs include multiple failed login attempts from same IP, sequential username attempts, and account lockouts.
+# THREAT INTELLIGENCE
+Indicators of Compromise are artifacts indicating a system has been compromised. IP addresses associated with known malware C2 or scanning activity are high value IOCs. Domain names used for phishing C2 or malware distribution are tracked by threat intel feeds. File hashes in MD5 SHA1 or SHA256 format uniquely identify malicious files. VirusTotal aggregates analysis from over 70 antivirus engines and provides reputation scores for IPs domains hashes and URLs. A verdict of malicious from multiple engines indicates high confidence. Threat feeds include commercial providers and free sources like AlienVault OTX, Abuse.ch, and Feodo Tracker for known botnet IPs.
 
-=== LOG ANALYSIS ===
-Failed Login Logs: Multiple failed SSH login attempts like "Failed password for root from 192.168.1.1 port 22" indicate brute force attack. Block the source IP and enable rate limiting.
+# CLOUD SECURITY
+Cloud incidents commonly stem from misconfigured storage buckets such as public S3 buckets, overly permissive IAM roles, exposed API keys in code repositories, and insecure defaults. Attack techniques include IAM privilege escalation, metadata service abuse where SSRF allows access to AWS instance metadata to steal temporary credentials, and cross-account access abuse. Defense includes least privilege for IAM, regular configuration audits using CSPM tools, secrets management instead of hardcoded keys, and cloud-native logging like AWS CloudTrail or Azure Activity Log. Enable multi-factor authentication for all cloud console access and use separate accounts for production and development environments.
 
-Web Server Logs: Entries containing "UNION SELECT", "script", "etc/passwd" indicate SQL injection or XSS attempts. Review WAF rules and patch vulnerable endpoints.
+# VULNERABILITY MANAGEMENT
+Vulnerability management is the continuous process of identifying assessing prioritizing and remediating security vulnerabilities. Scanners like Nessus Qualys and Rapid7 compare installed software against known vulnerability databases. CVSS scores vulnerabilities from 0 to 10 with scores above 9 being critical and requiring immediate attention. CVE identifiers uniquely identify publicly known vulnerabilities. Prioritization should consider CVSS score whether public exploits exist whether the system is internet-facing and the sensitivity of the data on the system. Patch critical vulnerabilities within 24 to 72 hours and high vulnerabilities within one week. Bug bounty programs incentivize external researchers to responsibly disclose vulnerabilities.
 
-Firewall Logs: Large number of connection attempts to port 445 indicate WannaCry ransomware spreading via SMB. Isolate affected systems immediately.
+# SOC OPERATIONS
+A SOC monitors detects and responds to cybersecurity threats around the clock. Tier 1 analysts handle initial alert triage following playbooks for common scenarios. Tier 2 analysts perform deeper investigation correlating events across multiple data sources. Tier 3 analysts and threat hunters proactively search for undetected threats and develop new detection logic. Key SOC metrics include MTTD MTTR false positive rate and alert volume per analyst. SIEM platforms correlate logs enabling detection of multi-stage attacks. SOAR platforms automate repetitive response tasks like blocking IPs quarantining hosts and gathering threat intelligence enrichment to reduce analyst workload and improve response times.
 
-DNS Logs: Unusual DNS queries to random looking domains like "a7f3k2.xyz" may indicate DNS tunneling or C2 communication. Block suspicious domains and investigate infected hosts.
+# SOCIAL ENGINEERING
+Social engineering exploits human psychology rather than technical vulnerabilities. Pretexting creates a fabricated scenario to extract information such as impersonating IT support to get credentials. Baiting leaves infected USB drives in public places. Quid pro quo offers a service like fake IT help in exchange for login credentials. Tailgating follows an authorized person into a restricted area. Vishing uses phone calls to impersonate banks IT support or government agencies. Defense requires security awareness training teaching employees to verify identities through official channels and never share credentials or take action based on unsolicited requests regardless of how convincing they seem.
 
-=== INCIDENT RESPONSE ===
-Step 1 Identification: Detect and confirm the security incident using logs, alerts, and threat intelligence.
-Step 2 Containment: Isolate affected systems to prevent spread. Disconnect from network if necessary.
-Step 3 Eradication: Remove malware, close vulnerabilities, and patch affected systems.
-Step 4 Recovery: Restore systems from clean backups and monitor for reinfection.
-Step 5 Lessons Learned: Document the incident and improve defenses to prevent recurrence.
+# NETWORK SECURITY MONITORING
+Network security monitoring involves collecting and analyzing network traffic to detect threats. Key data sources include firewall logs showing allowed and blocked connections, IDS IPS alerts flagging known attack signatures, NetFlow data showing traffic volumes and patterns, DNS logs revealing domain lookups and potential tunneling, and proxy logs showing web requests. Anomaly detection looks for deviations from baseline behavior such as unusual protocols unexpected geographic connections and traffic spikes. East-west traffic moving laterally between internal systems that do not normally communicate can indicate lateral movement by an attacker who has already breached the perimeter.
 
-=== COMMON PORTS ===
-Port 22 SSH: Often targeted for brute force attacks.
-Port 80 443 HTTP HTTPS: Web traffic, watch for web attacks.
-Port 445 SMB: Targeted by ransomware like WannaCry.
-Port 3389 RDP: Remote desktop, common target for brute force.
-Port 1433 MSSQL: Database port, watch for SQL injection attempts.
-Port 4444: Common Metasploit default listener port, highly suspicious.
-Port 6667 IRC: Old botnet command and control channel.
+# ZERO DAY VULNERABILITIES
+A zero-day is a vulnerability unknown to the vendor and unpatched at time of exploitation giving defenders zero days of warning. Zero-days are highly valuable and sold on underground markets or used by nation-state actors. Detection relies on behavior-based analysis rather than signature matching since no signature exists. Virtual patching via WAF rules provides temporary protection while a vendor patch is developed. Once a patch is released attackers race to build exploits against unpatched systems called n-day exploitation. Patch management programs should prioritize internet-facing systems and systems holding sensitive data and apply critical patches within 24 to 72 hours.
 
-=== THREAT ACTORS ===
-APT28 Fancy Bear: Russian state sponsored group targeting government and military. Known for spear phishing and credential theft.
-Lazarus Group: North Korean group known for financial theft and destructive attacks. Behind WannaCry ransomware.
-APT41: Chinese group conducting espionage and financially motivated attacks simultaneously.
+# DDOS ATTACKS
+Distributed Denial of Service attacks flood a target to make it unavailable. Volumetric attacks like UDP floods and amplification consume bandwidth. Protocol attacks like SYN floods exhaust server resources. Application layer attacks like HTTP floods target specific weaknesses. Amplification attacks abuse DNS NTP and Memcached protocols to multiply attack traffic volume by factors of thousands. Indicators include sudden massive traffic spikes from many source IPs and resource exhaustion without corresponding legitimate traffic. Mitigation includes CDN scrubbing services, rate limiting, SYN cookies, and upstream filtering by ISPs. Cloud-based DDoS protection services can absorb even terabit-scale attacks.
 
-=== IOC INDICATORS OF COMPROMISE ===
-IP Indicators: Malicious IPs communicating with your network indicate active compromise. Check threat intel feeds and block immediately.
-Domain Indicators: Suspicious domains used for C2 or phishing. Look for recently registered domains and lookalike domains.
-Hash Indicators: MD5 SHA1 SHA256 hashes of known malicious files. Match against files on your systems.
-Email Indicators: Malicious sender addresses, subject lines, and attachment names used in phishing campaigns.
+# INSIDER THREATS
+Insider threats come from employees contractors or partners with legitimate access who misuse it maliciously or accidentally. Indicators include accessing data outside normal job function, downloading large volumes of data especially before resignation, using personal cloud storage for company data, and accessing systems at unusual hours. Behavioral analytics UEBA tools baseline normal user behavior and flag deviations. Mitigation includes least privilege access, separation of duties, immediate access revocation on termination, and monitoring privileged user activity. Data classification and DLP tools help identify when sensitive data is being accessed or moved inappropriately by insiders.
