@@ -1821,25 +1821,28 @@ window.addEventListener('load',()=>{
 // ══ BOOT / SLEEP-RETRY LOGIC ══════════════════════════════════
 (function bootCheck(){
   let attempts = 0;
-  const maxAttempts = 20;
+  const maxAttempts = 25;
   const sub = document.getElementById('boot-sub');
+  const screen = document.getElementById('boot-screen');
+
+  // Force hide after 40 seconds no matter what
+  setTimeout(()=>{ if(screen) screen.style.display='none'; }, 40000);
 
   function tryConnect(){
     attempts++;
-    fetch('/overview-stats', { cache: 'no-store' })
+    if(sub) sub.textContent = `Connecting… (${attempts}/${maxAttempts}) — Railway free tier takes up to 30s`;
+    // Try both /health and root, whichever responds first
+    fetch('/', { cache: 'no-store', signal: AbortSignal.timeout(4000) })
       .then(r => {
-        if (r.ok) {
-          document.getElementById('boot-screen').style.display = 'none';
-        } else {
-          throw new Error('not ready');
-        }
+        if(r.ok || r.status === 200) {
+          if(screen) screen.style.display = 'none';
+        } else { throw new Error('not ready'); }
       })
       .catch(() => {
-        if (attempts < maxAttempts) {
-          if (sub) sub.textContent = `Waking up server… attempt ${attempts}/${maxAttempts}`;
+        if(attempts < maxAttempts) {
           setTimeout(tryConnect, 1500);
         } else {
-          if (sub) sub.innerHTML = 'Could not connect. <a href="javascript:location.reload()" style="color:#4ECDC4">Tap to retry</a>';
+          if(sub) sub.innerHTML = 'Taking longer than usual. <a href="javascript:location.reload()" style="color:#4ECDC4;font-weight:600">Tap to retry</a>';
         }
       });
   }
