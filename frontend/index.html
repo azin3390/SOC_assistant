@@ -569,12 +569,7 @@ canvas{width:100%!important}
 </head>
 <body>
 
-<div id="boot-screen" style="position:fixed;inset:0;background:#0D1321;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">
-  <div style="width:48px;height:48px;border:3px solid rgba(255,107,107,.2);border-top-color:#FF6B6B;border-radius:50%;animation:spin 0.8s linear infinite"></div>
-  <div style="color:#F8FAFC;font-size:14px;font-weight:600">Connecting to Sentinel SOC…</div>
-  <div id="boot-sub" style="color:#8899AA;font-size:12px">Waking up server (free tier can take up to 30s)</div>
-</div>
-<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
 
 
 <!-- ══ TOPBAR ══ -->
@@ -1819,35 +1814,7 @@ window.addEventListener('load',()=>{
 
 
 // ══ BOOT / SLEEP-RETRY LOGIC ══════════════════════════════════
-(function bootCheck(){
-  let attempts = 0;
-  const maxAttempts = 25;
-  const sub = document.getElementById('boot-sub');
-  const screen = document.getElementById('boot-screen');
 
-  // Force hide after 40 seconds no matter what
-  setTimeout(()=>{ if(screen) screen.style.display='none'; }, 40000);
-
-  function tryConnect(){
-    attempts++;
-    if(sub) sub.textContent = `Connecting… (${attempts}/${maxAttempts}) — Railway free tier takes up to 30s`;
-    // Try both /health and root, whichever responds first
-    fetch('/', { cache: 'no-store', signal: AbortSignal.timeout(4000) })
-      .then(r => {
-        if(r.ok || r.status === 200) {
-          if(screen) screen.style.display = 'none';
-        } else { throw new Error('not ready'); }
-      })
-      .catch(() => {
-        if(attempts < maxAttempts) {
-          setTimeout(tryConnect, 1500);
-        } else {
-          if(sub) sub.innerHTML = 'Taking longer than usual. <a href="javascript:location.reload()" style="color:#4ECDC4;font-weight:600">Tap to retry</a>';
-        }
-      });
-  }
-  tryConnect();
-})();
 
 
 // ══ FIXED UI INTERACTIONS ═════════════════════════════════════
