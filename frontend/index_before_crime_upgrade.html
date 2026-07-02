@@ -423,16 +423,6 @@ canvas{width:100%!important}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-
-/* ═══ CRIME SCENE VISUAL UPGRADE ═══ */
-.crime-tape{position:sticky;top:0;z-index:50;background:repeating-linear-gradient(90deg,#FFE000 0px,#FFE000 70px,#111 70px,#111 90px);color:#111;font-size:11px;font-weight:900;letter-spacing:2px;padding:7px 0;text-align:center;text-transform:uppercase;box-shadow:0 3px 12px rgba(0,0,0,.6);user-select:none;font-family:Arial Black,sans-serif}
-.cork-bg{position:absolute;inset:0;background:radial-gradient(circle,#1a0f00 0%,#0f0800 100%);opacity:.4;pointer-events:none;z-index:0}
-.crime-board .ev-card{position:relative}
-.crime-board .ev-card::before{content:'📌';position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:16px;z-index:5;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6))}
-.ev-number-badge{position:absolute;bottom:-8px;right:-8px;width:22px;height:22px;background:#FFD700;color:#000;border-radius:50%;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;border:2px solid #000;z-index:10;font-family:Arial Black,sans-serif}
-.top-secret-stamp{display:inline-block;border:3px solid #CC0000;color:#CC0000;font-family:'Courier New',monospace;font-size:11px;font-weight:900;padding:3px 10px;letter-spacing:3px;transform:rotate(-5deg);margin-top:8px;opacity:.85;text-transform:uppercase}
-#string-svg path{stroke:#CC0000;stroke-width:2px;opacity:.75;filter:drop-shadow(0 0 3px rgba(200,0,0,.5))}
-
 </style>
 </head>
 <body>
@@ -769,8 +759,6 @@ AI will reconstruct the full attack chain…"></textarea>
       </div>
     </div>
     <div class="crime-board" id="cs-board">
-      <div class="cork-bg"></div>
-      <div class="crime-tape">⚠ POLICE LINE — DO NOT CROSS ⚠ CRIME SCENE ⚠ POLICE LINE — DO NOT CROSS ⚠ CRIME SCENE ⚠</div>
       <div class="cork-bg"></div>
       <!-- Police tape always visible -->
       <div class="crime-tape"><span>⚠ POLICE LINE — DO NOT CROSS ⚠ CRIME SCENE ⚠ POLICE LINE — DO NOT CROSS ⚠ CRIME SCENE ⚠ POLICE LINE — DO NOT CROSS ⚠</span></div>
@@ -1422,14 +1410,6 @@ function renderCrime(data){
   let i=0;ve.textContent='';
   const ti=setInterval(()=>{ve.textContent+=data.case_status[i++];if(i>=data.case_status.length)clearInterval(ti)},50);
   document.getElementById('cs-summary').textContent=data.case_summary;
-  var existingStamp=document.querySelector('.top-secret-stamp');
-  if(existingStamp)existingStamp.remove();
-  if(data.critical_count>0){
-    var stamp=document.createElement('div');
-    stamp.className='top-secret-stamp';
-    stamp.textContent=data.critical_count>=2?'⛔ TOP SECRET — ACTIVE BREACH':'🔒 CLASSIFIED — UNDER INVESTIGATION';
-    document.getElementById('cs-verdict').insertAdjacentElement('afterend',stamp);
-  }
 
   const iocs=data.iocs;
   const totalIOCs=Object.values(iocs).reduce((s,a)=>s+a.length,0);
@@ -1460,10 +1440,6 @@ function renderCrime(data){
     el.addEventListener('mouseleave',()=>{el.style.filter='';});
     grid.appendChild(el);
     cardEls.push(el);
-    var numBadge=document.createElement('div');
-    numBadge.className='ev-number-badge';
-    numBadge.textContent=idx+1;
-    el.appendChild(numBadge);
   });
 
   // Draw red string connections between cards after layout
