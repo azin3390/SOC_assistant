@@ -497,7 +497,6 @@ canvas{width:100%!important}
     <div class="nav-section">Intelligence</div>
     <div class="nav-item" onclick="showPage('threatintel',this)"><span class="ni">🌐</span>Threat Intel</div>
     <div class="nav-item" onclick="showPage('assets',this)"><span class="ni">💻</span>Assets</div>
-    <div class="nav-item" onclick="showPage('vendorrisk',this)"><span class="ni">🏢</span>Vendor Risk</div>
     <div class="nav-section">Reports</div>
     <div class="nav-item" onclick="showPage('reports',this)"><span class="ni">📊</span>Reports</div>
     <div class="nav-item"><span class="ni">⚙️</span>Settings</div>
@@ -986,34 +985,6 @@ AI will reconstruct the full attack chain…"></textarea>
 <!-- ══════════════════════════════════════
      REPORTS PAGE
      ══════════════════════════════════════ -->
-<!-- ══════════════════════════════════════
-     VENDOR RISK ANALYZER PAGE
-     ══════════════════════════════════════ -->
-<div class="page" id="page-vendorrisk">
-  <div class="two-col">
-    <div class="lp" style="width:330px">
-      <div class="p-title">🏢 Vendor Risk Analyzer</div>
-      <div class="p-sub">Paste a vendor questionnaire, audit report, or security policy — AI scores their risk and flags gaps</div>
-      <textarea class="textarea" id="vendor-input" style="min-height:280px" placeholder="Paste vendor documentation here…
-
-Example: security questionnaire responses, SOC 2 report excerpts, data processing agreements, or policy documents."></textarea>
-      <button class="btn-main" onclick="analyzeVendorRisk()" id="vendor-btn"><span id="vendor-btn-text">🔍 Analyze Vendor Risk</span></button>
-      <button class="btn-sub" onclick="loadVendorSample()">📝 Load Sample Document</button>
-      <div><div class="s-header">Checks For</div>
-        <div class="tag-row">
-          <span class="tag-pill">MFA</span><span class="tag-pill">Encryption</span>
-          <span class="tag-pill">SOC 2 / ISO 27001</span><span class="tag-pill">Incident Response</span>
-          <span class="tag-pill">Pen Testing</span><span class="tag-pill">Access Control</span>
-          <span class="tag-pill">Backup/DR</span><span class="tag-pill">GDPR/CCPA</span>
-        </div>
-      </div>
-    </div>
-    <div class="rp" id="vendor-results">
-      <div class="empty"><div class="e-icon">🏢</div><div class="e-title">Paste vendor documentation to analyze</div><div class="e-sub">Detects missing security controls and concerning statements automatically</div></div>
-    </div>
-  </div>
-</div>
-
 <div class="page" id="page-reports">
   <div class="page-header">
     <div><div class="page-title">📊 Reports</div><div class="page-sub">Generate and download security reports</div></div>
@@ -2228,112 +2199,6 @@ function animateGalaxyMesh(canvas, edges, pts){
     }
   }
   frame();
-}
-
-
-// ══ VENDOR RISK ANALYZER ══════════════════════════════════════
-function loadVendorSample(){
-  document.getElementById('vendor-input').value=
-`VENDOR SECURITY QUESTIONNAIRE RESPONSE — CloudSync Data Solutions
-
-Q: Describe your data encryption practices.
-A: We use AES-256 encryption for data at rest and TLS 1.2+ for data in transit across all customer data.
-
-Q: Do you hold any security certifications?
-A: Yes, we are SOC 2 Type II certified. We are currently pursuing ISO 27001 but do not have it yet.
-
-Q: Describe your access control model.
-A: We implement role-based access control (RBAC) with least privilege principles for all internal systems.
-
-Q: Do you have a formal incident response plan?
-A: We do not currently have a formal, documented incident response plan. Response is handled ad-hoc by engineering.
-
-Q: How is multi-factor authentication enforced?
-A: MFA is required for all employee accounts accessing production systems.
-
-Q: Describe your vulnerability management program.
-A: We do not perform regular vulnerability scanning at this time. This is planned for the future.
-
-Q: Do you conduct employee security training?
-A: No formal security awareness training program currently exists.
-
-Q: Describe your backup and disaster recovery process.
-A: Backups are performed nightly, however we do not have a documented business continuity plan.
-
-Q: Are you GDPR compliant?
-A: We handle EU customer data in accordance with GDPR requirements.
-
-Q: How is third-party vendor access monitored?
-A: Third-party access is not monitored or logged at this time.`;
-}
-
-async function analyzeVendorRisk(){
-  var doc=document.getElementById('vendor-input').value.trim();
-  if(!doc){alert('Please paste vendor documentation first!');return;}
-  var btn=document.getElementById('vendor-btn');
-  document.getElementById('vendor-btn-text').innerHTML='<span class="loading-ring"></span> Analyzing…';
-  btn.disabled=true;
-  var panel=document.getElementById('vendor-results');
-  panel.innerHTML='<div class="empty"><div class="e-title">⏳ Scanning documentation…</div></div>';
-  try{
-    var r=await fetch('/vendor-risk',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({document:doc})});
-    var d=await r.json();
-    renderVendorRisk(d);
-  }catch(e){
-    panel.innerHTML='<div class="empty" style="color:var(--primary)">❌ Server not reachable</div>';
-  }
-  btn.disabled=false;
-  document.getElementById('vendor-btn-text').textContent='🔍 Analyze Vendor Risk';
-}
-
-function renderVendorRisk(d){
-  var pct=d.total_controls>0?Math.round((d.controls_found_count/d.total_controls)*100):0;
-  var h='<div class="risk-card">'+
-    '<div style="display:flex;align-items:center;justify-content:space-between">'+
-      '<div><div style="font-size:11px;color:var(--muted);font-weight:500;margin-bottom:4px">Risk Score</div>'+
-      '<div style="font-size:40px;font-weight:800;color:'+d.risk_color+';line-height:1">'+d.risk_score+'/100</div></div>'+
-      '<div style="padding:8px 20px;border-radius:20px;font-size:15px;font-weight:700;background:'+d.risk_color+'20;color:'+d.risk_color+';border:1px solid '+d.risk_color+'40">'+d.risk_level+'</div>'+
-    '</div>'+
-    '<div class="risk-track"><div class="risk-fill" style="width:'+d.risk_score+'%;background:'+d.risk_color+'"></div></div>'+
-    '<div style="font-size:12px;color:var(--muted);margin-top:6px">'+d.controls_found_count+' of '+d.total_controls+' expected security controls found ('+pct+'%)</div>'+
-  '</div>';
-
-  h+='<div class="card" style="margin-bottom:16px"><div class="card-title"><div class="ct-left">📋 Executive Summary</div></div>'+
-     '<div style="font-size:13px;color:var(--text);line-height:1.7">'+d.summary+'</div></div>';
-
-  if(d.concerning_flags && d.concerning_flags.length>0){
-    h+='<div class="card" style="margin-bottom:16px"><div class="card-title"><div class="ct-left">🚩 Concerning Statements Found</div></div>';
-    d.concerning_flags.forEach(function(f){
-      var sevClass=f.severity==='Critical'?'high':f.severity==='High'?'high':'medium';
-      h+='<div class="reason '+sevClass+'"><div class="r-flag">'+f.flag+'</div><div class="r-detail">Severity: '+f.severity+' • '+f.occurrences+' occurrence(s) in document</div></div>';
-    });
-    h+='</div>';
-  }
-
-  h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">';
-  h+='<div class="card"><div class="card-title"><div class="ct-left" style="color:var(--accent)">✓ Controls Found ('+d.controls_found.length+')</div></div>';
-  if(d.controls_found.length>0){
-    d.controls_found.forEach(function(c){h+='<div style="font-size:12px;color:var(--text);padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)">✅ '+c+'</div>';});
-  } else {
-    h+='<div style="font-size:12px;color:var(--muted)">No recognized controls found in document</div>';
-  }
-  h+='</div>';
-
-  h+='<div class="card"><div class="card-title"><div class="ct-left" style="color:var(--primary)">✗ Controls Missing ('+d.controls_missing.length+')</div></div>';
-  if(d.controls_missing.length>0){
-    d.controls_missing.forEach(function(c){h+='<div style="font-size:12px;color:var(--muted);padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)">❌ '+c+'</div>';});
-  } else {
-    h+='<div style="font-size:12px;color:var(--accent)">All expected controls present!</div>';
-  }
-  h+='</div></div>';
-
-  h+='<div class="card"><div class="card-title"><div class="ct-left">✅ Recommended Actions</div></div>';
-  d.recommendations.forEach(function(rec){
-    h+='<div style="font-size:13px;color:var(--text);padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04)">'+rec+'</div>';
-  });
-  h+='</div>';
-
-  document.getElementById('vendor-results').innerHTML=h;
 }
 
 </script>

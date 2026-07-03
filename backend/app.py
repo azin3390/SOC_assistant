@@ -7,6 +7,7 @@ from report_generator import generate_report
 from timeline import generate_timeline_html
 from url_scanner import scan_url as ml_scan_url
 from crime_scene import analyze_crime_scene
+from vendor_risk import analyze_vendor_document
 import os, re, random
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
@@ -240,6 +241,14 @@ def galaxy():
 @app.route('/health')
 def health():
     return jsonify({"status": "ok"}), 200
+
+@app.route('/vendor-risk', methods=['POST'])
+def vendor_risk_route():
+    data = request.get_json()
+    if not data or 'document' not in data:
+        return jsonify({"error": "Send JSON with document field"}), 400
+    result = analyze_vendor_document(data['document'])
+    return jsonify(result)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5002))
