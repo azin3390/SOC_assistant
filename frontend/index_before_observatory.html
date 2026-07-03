@@ -60,7 +60,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r);cursor:pointer;color:var(--muted);font-size:13px;font-weight:500;transition:all .18s;margin-bottom:2px}
 .nav-item:hover{background:var(--card2);color:var(--text)}
 .nav-item.active{background:linear-gradient(135deg,rgba(255,107,107,.15),rgba(78,205,196,.08));color:var(--primary);border:1px solid rgba(255,107,107,.2)}
-#page-galaxy.active ~ * .nav-item.active, .sidebar:has(+ #page-galaxy.active) .nav-item.active{border-radius:14px}
 .nav-item .ni{font-size:15px;width:20px;text-align:center;flex-shrink:0}
 .nav-section{font-size:10px;font-weight:700;color:var(--border);text-transform:uppercase;letter-spacing:.8px;padding:12px 12px 6px;margin-top:4px}
 .sidebar-footer{padding:12px;border-top:1px solid var(--border)}
@@ -434,15 +433,6 @@ canvas{width:100%!important}
 .top-secret-stamp{display:inline-block;border:3px solid #CC0000;color:#CC0000;font-family:'Courier New',monospace;font-size:11px;font-weight:900;padding:3px 10px;letter-spacing:3px;transform:rotate(-5deg);margin-top:8px;opacity:.85;text-transform:uppercase}
 #string-svg path{stroke:#CC0000;stroke-width:2px;opacity:.75;filter:drop-shadow(0 0 3px rgba(200,0,0,.5))}
 
-</style>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-.galaxy-font, #page-galaxy { font-family:'Space Grotesk',var(--font); }
-.glass-card{background:rgba(255,255,255,.05);backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%);border:1px solid rgba(255,255,255,.1);border-radius:18px;box-shadow:0 8px 32px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.06)}
-@keyframes obsPulse{0%,100%{opacity:.9;transform:scale(1)}50%{opacity:1;transform:scale(1.04)}}
-@keyframes obsRingSpin{from{transform:translate(-50%,-50%) rotate(-15deg)}to{transform:translate(-50%,-50%) rotate(345deg)}}
-@keyframes obsFloat{0%,100%{margin-top:0}50%{margin-top:-5px}}
 </style>
 </head>
 <body>
@@ -840,26 +830,22 @@ AI will reconstruct the full attack chain…"></textarea>
   <div style="flex:1;display:flex;overflow:hidden;background:#05030f">
     <div style="flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column">
 
-      <div class="galaxy-font" style="padding:16px 20px 12px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;flex-shrink:0;z-index:30;position:relative">
-        <div class="glass-card" style="padding:12px 14px;display:flex;align-items:center;gap:12px">
-          <div style="width:36px;height:36px;border-radius:10px;background:rgba(236,72,153,.12);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 16px rgba(236,72,153,.15)">🔥</div>
-          <div style="flex:1"><div style="font-size:9px;color:#94A3B8;text-transform:uppercase;letter-spacing:1px;font-weight:600">Total Threats</div><div style="font-size:18px;font-weight:700;color:#F1F5F9">24,841</div><div style="font-size:10px;color:#34D399;font-weight:600">↑ 12.6%</div></div>
-          <canvas class="galaxy-spark" data-color="#EC4899" width="46" height="26"></canvas>
+      <div style="padding:14px 20px 10px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;flex-shrink:0;z-index:30;position:relative;border-bottom:1px solid rgba(148,163,184,.08)">
+        <div style="display:flex;align-items:center;gap:10px;padding:4px 0">
+          <div style="width:3px;height:28px;background:#64748B;border-radius:2px"></div>
+          <div><div style="font-size:9px;color:#64748B;text-transform:uppercase;letter-spacing:1px;font-weight:600">Total Threats</div><div style="font-size:17px;font-weight:700;color:#E2E8F0;font-family:var(--mono)">24,841</div></div>
         </div>
-        <div class="glass-card" style="padding:12px 14px;display:flex;align-items:center;gap:12px">
-          <div style="width:36px;height:36px;border-radius:10px;background:rgba(56,189,248,.12);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 16px rgba(56,189,248,.15)">🛡</div>
-          <div style="flex:1"><div style="font-size:9px;color:#94A3B8;text-transform:uppercase;letter-spacing:1px;font-weight:600">Blocked Attacks</div><div style="font-size:18px;font-weight:700;color:#F1F5F9">18,207</div><div style="font-size:10px;color:#34D399;font-weight:600">↑ 8.4%</div></div>
-          <canvas class="galaxy-spark" data-color="#38BDF8" width="46" height="26"></canvas>
+        <div style="display:flex;align-items:center;gap:10px;padding:4px 0">
+          <div style="width:3px;height:28px;background:#0EA5B7;border-radius:2px"></div>
+          <div><div style="font-size:9px;color:#64748B;text-transform:uppercase;letter-spacing:1px;font-weight:600">Blocked Attacks</div><div style="font-size:17px;font-weight:700;color:#E2E8F0;font-family:var(--mono)">18,207</div></div>
         </div>
-        <div class="glass-card" style="padding:12px 14px;display:flex;align-items:center;gap:12px">
-          <div style="width:36px;height:36px;border-radius:10px;background:rgba(139,92,246,.12);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 16px rgba(139,92,246,.15)">⚡</div>
-          <div style="flex:1"><div style="font-size:9px;color:#94A3B8;text-transform:uppercase;letter-spacing:1px;font-weight:600">Active Nodes</div><div style="font-size:18px;font-weight:700;color:#F1F5F9" id="galaxy-active-count">18,942</div><div style="font-size:10px;color:#34D399;font-weight:600">↑ 5.7%</div></div>
-          <canvas class="galaxy-spark" data-color="#8B5CF6" width="46" height="26"></canvas>
+        <div style="display:flex;align-items:center;gap:10px;padding:4px 0">
+          <div style="width:3px;height:28px;background:#7C7FD6;border-radius:2px"></div>
+          <div><div style="font-size:9px;color:#64748B;text-transform:uppercase;letter-spacing:1px;font-weight:600">Active Nodes</div><div style="font-size:17px;font-weight:700;color:#E2E8F0;font-family:var(--mono)" id="galaxy-active-count">18,942</div></div>
         </div>
-        <div class="glass-card" style="padding:12px 14px;display:flex;align-items:center;gap:12px">
-          <div style="width:36px;height:36px;border-radius:10px;background:rgba(52,211,153,.12);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 16px rgba(52,211,153,.15)">✦</div>
-          <div style="flex:1"><div style="font-size:9px;color:#94A3B8;text-transform:uppercase;letter-spacing:1px;font-weight:600">System Health</div><div style="font-size:18px;font-weight:700;color:#F1F5F9">98.7%</div><div style="font-size:10px;color:#34D399;font-weight:600">↑ 2.2%</div></div>
-          <canvas class="galaxy-spark" data-color="#34D399" width="46" height="26"></canvas>
+        <div style="display:flex;align-items:center;gap:10px;padding:4px 0">
+          <div style="width:3px;height:28px;background:#10B981;border-radius:2px"></div>
+          <div><div style="font-size:9px;color:#64748B;text-transform:uppercase;letter-spacing:1px;font-weight:600">System Health</div><div style="font-size:17px;font-weight:700;color:#E2E8F0;font-family:var(--mono)">98.7%</div></div>
         </div>
       </div>
 
@@ -1881,27 +1867,6 @@ function drawThreatGauge(){
   ctx.fillStyle='#FFE66D';ctx.fill();
 }
 
-
-function drawGalaxySparklines(){
-  document.querySelectorAll('.galaxy-spark').forEach(function(c){
-    var ctx=c.getContext('2d');
-    var color=c.getAttribute('data-color')||'#8B5CF6';
-    var W=c.width,H=c.height;
-    var vals=[];
-    for(var i=0;i<12;i++){vals.push(20+Math.random()*60);}
-    var max=Math.max.apply(null,vals),min=Math.min.apply(null,vals);
-    ctx.clearRect(0,0,W,H);
-    var grad=ctx.createLinearGradient(0,0,0,H);
-    grad.addColorStop(0,color+'40');grad.addColorStop(1,color+'00');
-    ctx.beginPath();
-    vals.forEach(function(v,i){var x=W*i/(vals.length-1);var y=H-(v-min)/(max-min||1)*H*.8-H*.1;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});
-    ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
-    ctx.beginPath();
-    vals.forEach(function(v,i){var x=W*i/(vals.length-1);var y=H-(v-min)/(max-min||1)*H*.8-H*.1;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});
-    ctx.strokeStyle=color;ctx.lineWidth=1.3;ctx.stroke();
-  });
-}
-
 function initGalaxyCanvas(){
   var bgC=document.getElementById('galaxy-bg-canvas');
   var lnC=document.getElementById('galaxy-line-canvas');
@@ -1914,7 +1879,7 @@ function initGalaxyCanvas(){
   galaxyAsteroids=[];
   var cx=bgC.width/2,cy=bgC.height/2,bR=Math.min(bgC.width,bgC.height)*.22;
   for(var j=0;j<24;j++){galaxyAsteroids.push({angle:(j/24)*Math.PI*2+Math.random()*.2,r:bR+Math.random()*18-9,size:Math.random()*2.5+1,speed:.0015+Math.random()*.001,wobble:Math.random()*Math.PI*2});}
-  placeGalaxyPlanets();placeThreatOrbs();drawGalaxyLines();animateGalaxyBg(bgC);drawThreatGauge();drawGalaxySparklines();galaxyInited=true;
+  placeGalaxyPlanets();placeThreatOrbs();drawGalaxyLines();animateGalaxyBg(bgC);drawThreatGauge();galaxyInited=true;
 }
 
 function animateGalaxyBg(canvas){
