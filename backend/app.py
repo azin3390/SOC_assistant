@@ -8,6 +8,7 @@ from timeline import generate_timeline_html
 from url_scanner import scan_url as ml_scan_url
 from crime_scene import analyze_crime_scene
 from vendor_risk import analyze_vendor_document
+from containment import analyze_containment
 import os, re, random
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
@@ -248,6 +249,14 @@ def vendor_risk_route():
     if not data or 'document' not in data:
         return jsonify({"error": "Send JSON with document field"}), 400
     result = analyze_vendor_document(data['document'])
+    return jsonify(result)
+
+@app.route('/containment', methods=['POST'])
+def containment_route():
+    data = request.get_json()
+    if not data or 'incident' not in data:
+        return jsonify({"error": "Send JSON with incident field"}), 400
+    result = analyze_containment(data['incident'])
     return jsonify(result)
 
 if __name__ == '__main__':
