@@ -1698,32 +1698,25 @@ function renderCrime(data){
     el.appendChild(numBadge);
   });
 
-  // Deterministically lay out cards in a fixed grid (no reliance on
-  // browser flex-layout timing) so dragging one card can NEVER cause
-  // others to reflow or stack on top of each other.
+  // Freeze all cards into absolute position immediately so dragging one
+  // never causes the flex layout to reflow the others
   requestAnimationFrame(function(){
-    var containerWidth=grid.clientWidth||grid.parentElement.clientWidth||760;
-    var gap=16, cardW=172;
-    var cols=Math.max(1,Math.floor((containerWidth+gap)/(cardW+gap)));
-    var cardH=(cardEls[0]&&cardEls[0].offsetHeight>0)?cardEls[0].offsetHeight:190;
+    var gridRect=grid.getBoundingClientRect();
     var maxBottom=0;
-    cardEls.forEach(function(cardEl,i){
-      var col=i%cols, row=Math.floor(i/cols);
-      var jitterX=((i*37)%9)-4;
-      var jitterY=((i*23)%7)-3;
-      var left=col*(cardW+gap)+jitterX;
-      var top=row*(cardH+gap)+jitterY;
+    cardEls.forEach(function(cardEl){
+      var r=cardEl.getBoundingClientRect();
+      var left=r.left-gridRect.left, top=r.top-gridRect.top;
       cardEl.style.position='absolute';
       cardEl.style.left=left+'px';
       cardEl.style.top=top+'px';
       cardEl.style.margin='0';
-      maxBottom=Math.max(maxBottom, top+cardH);
+      maxBottom=Math.max(maxBottom, top+r.height);
     });
-    grid.style.minHeight=(maxBottom+30)+'px';
-    grid.style.width='100%';
-    // Draw red string connections once positions are guaranteed final
-    drawRedStrings(cardEls,data.evidence_cards);
+    grid.style.minHeight=(maxBottom+20)+'px';
   });
+
+  // Draw red string connections between cards after layout
+  setTimeout(()=>drawRedStrings(cardEls,data.evidence_cards),600);
 
   // Timeline
   if(data.attack_timeline&&data.attack_timeline.length>0){
@@ -1794,80 +1787,38 @@ function drawRedStrings(cardEls,cards){
   svg.innerHTML='';
   svg.setAttribute('viewBox',`0 0 ${boardRect.width} ${boardRect.height}`);
 
-  // Add a soft shadow filter once
-  if(!document.getElementById('string-shadow-filter')){
-    const defs=document.createElementNS('http://www.w3.org/2000/svg','defs');
-    defs.innerHTML=`<filter id="string-shadow-filter" x="-50%" y="-50%" width="200%" height="200%">
-      <feDropShadow dx="0" dy="1.5" stdDeviation="1.2" flood-color="#000" flood-opacity="0.5"/>
-    </filter>`;
-    svg.appendChild(defs);
-  }
-
-  // Connect critical/high cards with string, forming a chain
-  const critCards=cardEls.map((el,i)=>({el,card:cards[i]})).filter(x=>x.card&&(x.card.severity==='Critical'||x.card.severity==='High'));
+  // Connect critical cards with red string
+  const critCards=cardEls.filter((_,i)=>cards[i]&&(cards[i].severity==='Critical'||cards[i].severity==='High'));
   if(critCards.length<2) return;
 
-  critCards.forEach((item,i)=>{
-    if(i===critCards.length-1) return;
-    const r1=item.el.getBoundingClientRect();
-    const r2=critCards[i+1].el.getBoundingClientRect();
+  for(let i=0;i<critCards.length-1;i++){
+    const r1=critCards[i].getBoundingClientRect();
+    const r2=critCards[i+1].getBoundingClientRect();
     const x1=r1.left+r1.width/2-boardRect.left;
-    const y1=r1.top+8-boardRect.top;
+    const y1=r1.top+r1.height/2-boardRect.top;
     const x2=r2.left+r2.width/2-boardRect.left;
-    const y2=r2.top+8-boardRect.top;
-
-    // Randomized sag amount per string for natural, uneven tautness
-    const dist=Math.hypot(x2-x1,y2-y1);
-    const sagSeed=((i*53)%17)/17;
-    const sag=18+sagSeed*34;
+    const y2=r2.top+r2.height/2-boardRect.top;
     const mx=(x1+x2)/2;
-    const my=Math.max(y1,y2)+sag;
+    const my=Math.min(y1,y2)-30;
 
-    const group=document.createElementNS('http://www.w3.org/2000/svg','g');
-    group.setAttribute('filter','url(#string-shadow-filter)');
-
-    // Main taut string (slightly varied red tone per string)
-    const hue=['#C43B3B','#D0453F','#B83535'][i%3];
+    // String path with slight sag
     const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-    const d=`M${x1},${y1} Q${mx},${my} ${x2},${y2}`;
-    path.setAttribute('d',d);
-    path.setAttribute('stroke',hue);
-    path.setAttribute('stroke-width','1.6');
+    path.setAttribute('d',`M${x1},${y1} Q${mx},${my} ${x2},${y2}`);
+    path.setAttribute('stroke','#FF6B6B');
+    path.setAttribute('stroke-width','1.5');
     path.setAttribute('fill','none');
-    path.setAttribute('stroke-linecap','round');
-    path.setAttribute('opacity','0.9');
+    path.setAttribute('opacity','0.6');
+    path.setAttribute('stroke-dasharray','4,3');
 
-    // Faint twisted-yarn texture line just beside the main strand
-    const path2=document.createElementNS('http://www.w3.org/2000/svg','path');
-    path2.setAttribute('d',d);
-    path2.setAttribute('stroke','#8a2020');
-    path2.setAttribute('stroke-width','.6');
-    path2.setAttribute('fill','none');
-    path2.setAttribute('opacity','0.5');
-    path2.setAttribute('stroke-dasharray','1,3');
+    // Animate string drawing
+    const len=path.getTotalLength?400:400;
+    path.style.strokeDasharray=len;
+    path.style.strokeDashoffset=len;
+    path.style.animation=`drawString 1s ease ${i*.3}s forwards`;
+    svg.appendChild(path);
+  }
 
-    group.appendChild(path);
-    group.appendChild(path2);
-    svg.appendChild(group);
-
-    // Animate the string being pulled taut
-    [path,path2].forEach(p=>{
-      const len=dist+sag*1.4;
-      p.style.strokeDasharray=p===path2?'1,3':len;
-      p.style.strokeDashoffset=p===path2?0:len;
-      p.style.animation=`drawString .5s ease ${i*.15}s forwards`;
-    });
-
-    // Pushpin-style anchor dots at both ends
-    [ [x1,y1], [x2,y2] ].forEach(([px,py])=>{
-      const pin=document.createElementNS('http://www.w3.org/2000/svg','circle');
-      pin.setAttribute('cx',px);pin.setAttribute('cy',py);pin.setAttribute('r','2.5');
-      pin.setAttribute('fill','#8a2020');
-      pin.setAttribute('opacity','0.9');
-      svg.appendChild(pin);
-    });
-  });
-
+  // Add keyframe animation for string drawing
   if(!document.getElementById('string-style')){
     const style=document.createElement('style');
     style.id='string-style';
