@@ -450,37 +450,6 @@ canvas{width:100%!important}
 </style>
 </head>
 <body>
-<div id="auth-overlay" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center">
-  <div style="width:360px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:32px;box-shadow:0 20px 60px rgba(0,0,0,.5)">
-    <div style="text-align:center;margin-bottom:24px">
-      <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--purple));display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 12px">🛡️</div>
-      <div style="font-size:18px;font-weight:800;color:var(--text)">Sentinel <span style="color:var(--accent)">SOC</span></div>
-      <div style="font-size:12px;color:var(--muted);margin-top:4px" id="auth-subtitle">Sign in to your account</div>
-    </div>
-
-    <div id="auth-error" style="display:none;background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);color:var(--primary);font-size:12px;padding:8px 12px;border-radius:8px;margin-bottom:14px"></div>
-
-    <div id="auth-register-fields" style="display:none">
-      <label style="font-size:11px;color:var(--muted);font-weight:600;display:block;margin-bottom:5px">Display Name</label>
-      <input type="text" id="auth-display-name" placeholder="e.g. Azin Iftikhar" style="width:100%;padding:10px 12px;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;margin-bottom:14px">
-    </div>
-
-    <label style="font-size:11px;color:var(--muted);font-weight:600;display:block;margin-bottom:5px">Username</label>
-    <input type="text" id="auth-username" placeholder="username" style="width:100%;padding:10px 12px;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;margin-bottom:14px">
-
-    <label style="font-size:11px;color:var(--muted);font-weight:600;display:block;margin-bottom:5px">Password</label>
-    <input type="password" id="auth-password" placeholder="••••••••" style="width:100%;padding:10px 12px;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;margin-bottom:18px">
-
-    <button id="auth-submit-btn" onclick="submitAuth()" style="width:100%;padding:11px;background:linear-gradient(135deg,var(--primary),var(--purple));color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:14px">Sign In</button>
-
-    <div style="text-align:center;font-size:12px;color:var(--muted)">
-      <span id="auth-toggle-text">Don't have an account?</span>
-      <span onclick="toggleAuthMode()" style="color:var(--accent);cursor:pointer;font-weight:600" id="auth-toggle-link">Create one</span>
-    </div>
-  </div>
-</div>
-
-
 
 <!-- ══ TOPBAR ══ -->
 <div class="topbar">
@@ -503,11 +472,12 @@ canvas{width:100%!important}
     </div>
     <div class="tb-btn" title="Help">❓</div>
     <div class="admin-pill" onclick="toggleAdminMenu()" style="position:relative">
-      <div class="admin-avatar" id="user-avatar">A</div>
-      <div class="admin-name" id="user-display-name">Loading… ▾</div>
-      <div id="admin-menu" style="display:none;position:absolute;top:44px;right:0;width:180px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:6px;z-index:200;box-shadow:0 12px 32px rgba(0,0,0,.5);text-align:left">
-        <div style="font-size:12px;color:var(--text);padding:8px 10px;font-weight:600;border-bottom:1px solid var(--border);margin-bottom:4px" id="admin-menu-username">—</div>
-        <div style="font-size:12px;color:var(--primary);padding:8px 10px;cursor:pointer;border-radius:6px" onclick="signOut()">🚪 Sign out</div>
+      <div class="admin-avatar">A</div>
+      <div class="admin-name">Admin ▾</div>
+      <div id="admin-menu" style="display:none;position:absolute;top:44px;right:0;width:160px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:6px;z-index:200;box-shadow:0 12px 32px rgba(0,0,0,.5);text-align:left">
+        <div style="font-size:12px;color:var(--text);padding:8px 10px;cursor:pointer;border-radius:6px">👤 Profile</div>
+        <div style="font-size:12px;color:var(--text);padding:8px 10px;cursor:pointer;border-radius:6px">⚙️ Preferences</div>
+        <div style="font-size:12px;color:var(--primary);padding:8px 10px;cursor:pointer;border-radius:6px">🚪 Sign out</div>
       </div>
     </div>
   </div>
@@ -1908,7 +1878,6 @@ function drawRedStrings(cardEls,cards){
 
 // ══ Auto-scan URL from PhishGuard ════════════════════════════
 window.addEventListener('load',()=>{
-  checkSession();
   loadOverview();
   setupFilterChips();
   const p=new URLSearchParams(window.location.search);
@@ -2793,102 +2762,6 @@ function startContainmentCountdown(minutes){
   tick();
   containmentCountdownInterval=setInterval(tick,1000);
 }
-
-
-// ══ AUTHENTICATION ═══════════════════════════════════════════
-var authMode='login'; // 'login' or 'register'
-
-function toggleAuthMode(){
-  authMode = authMode==='login' ? 'register' : 'login';
-  document.getElementById('auth-register-fields').style.display = authMode==='register' ? 'block' : 'none';
-  document.getElementById('auth-subtitle').textContent = authMode==='login' ? 'Sign in to your account' : 'Create your analyst account';
-  document.getElementById('auth-submit-btn').textContent = authMode==='login' ? 'Sign In' : 'Create Account';
-  document.getElementById('auth-toggle-text').textContent = authMode==='login' ? "Don't have an account?" : 'Already have an account?';
-  document.getElementById('auth-toggle-link').textContent = authMode==='login' ? 'Create one' : 'Sign in';
-  document.getElementById('auth-error').style.display = 'none';
-}
-
-async function submitAuth(){
-  var username = document.getElementById('auth-username').value.trim();
-  var password = document.getElementById('auth-password').value;
-  var errEl = document.getElementById('auth-error');
-  errEl.style.display = 'none';
-
-  if(!username || !password){
-    errEl.textContent = 'Please fill in all fields';
-    errEl.style.display = 'block';
-    return;
-  }
-
-  var endpoint = authMode==='login' ? '/auth/login' : '/auth/register';
-  var body = { username: username, password: password };
-  if(authMode==='register'){
-    var displayName = document.getElementById('auth-display-name').value.trim();
-    if(!displayName){
-      errEl.textContent = 'Please enter a display name';
-      errEl.style.display = 'block';
-      return;
-    }
-    body.display_name = displayName;
-  }
-
-  try{
-    var r = await fetch(endpoint, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      credentials:'include',
-      body: JSON.stringify(body)
-    });
-    var d = await r.json();
-    if(d.error){
-      errEl.textContent = d.error;
-      errEl.style.display = 'block';
-      return;
-    }
-    applyLoggedInUser(d);
-    document.getElementById('auth-overlay').style.display = 'none';
-  }catch(e){
-    errEl.textContent = 'Could not reach server. Make sure it is running.';
-    errEl.style.display = 'block';
-  }
-}
-
-function applyLoggedInUser(user){
-  var initials = user.display_name.trim().split(' ').map(function(w){return w[0];}).join('').toUpperCase().substring(0,2);
-  document.getElementById('user-avatar').textContent = initials || 'U';
-  document.getElementById('user-display-name').textContent = user.display_name + ' ▾';
-  document.getElementById('admin-menu-username').textContent = '@' + user.username;
-}
-
-async function checkSession(){
-  try{
-    var r = await fetch('/auth/me', {credentials:'include'});
-    if(r.ok){
-      var d = await r.json();
-      applyLoggedInUser(d);
-      document.getElementById('auth-overlay').style.display = 'none';
-    } else {
-      document.getElementById('auth-overlay').style.display = 'flex';
-    }
-  }catch(e){
-    document.getElementById('auth-overlay').style.display = 'flex';
-  }
-}
-
-async function signOut(){
-  try{
-    await fetch('/auth/logout', {method:'POST', credentials:'include'});
-  }catch(e){}
-  document.getElementById('auth-username').value='';
-  document.getElementById('auth-password').value='';
-  document.getElementById('auth-overlay').style.display = 'flex';
-}
-
-document.getElementById('auth-username') && document.addEventListener('keypress', function(e){
-  if(e.key==='Enter' && document.getElementById('auth-overlay').style.display!=='none'){
-    submitAuth();
-  }
-});
 
 </script>
 </body>
