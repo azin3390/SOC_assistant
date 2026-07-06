@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory, send_file
+from flask import Flask, request, jsonify, send_from_directory, send_file, session
 from flask_cors import CORS
 from threat_intel import analyze
 from rag_engine import RAGEngine
@@ -9,13 +9,15 @@ from url_scanner import scan_url as ml_scan_url
 from crime_scene import analyze_crime_scene
 from vendor_risk import analyze_vendor_document
 from containment import analyze_containment
+from auth import create_user, verify_user, get_user_by_id
 import os, re, random
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
 app = Flask(__name__)
-CORS(app)
+CORS(app, supports_credentials=True)
+app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-change-in-production-' + os.urandom(8).hex())
 
 print("Starting Sentinel SOC...")
 rag = RAGEngine()
@@ -258,6 +260,46 @@ def containment_route():
         return jsonify({"error": "Send JSON with incident field"}), 400
     result = analyze_containment(data['incident'])
     return jsonify(result)
+
+@app.route('/auth/register', methods=['POST'])
+def register_route():
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+    result = create_user(data.get('username',''), data.get('password',''), data.get('display_name',''))
+    if 'error' in result:
+        return jsonify(result), 400
+    session['user_id'] = result['id']
+    session['display_name'] = result['display_name']
+    return jsonify(result)
+
+@app.route('/auth/login', methods=['POST'])
+def login_route():
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+    result = verify_user(data.get('username',''), data.get('password',''))
+    if 'error' in result:
+        return jsonify(result), 401
+    session['user_id'] = result['id']
+    session['display_name'] = result['display_name']
+    return jsonify(result)
+
+@app.route('/auth/logout', methods=['POST'])
+def logout_route():
+    session.clear()
+    return jsonify({"success": True})
+
+@app.route('/auth/me', methods=['GET'])
+def me_route():
+    user_id = session.get('user_id')
+    if not user_id:
+        return jsonify({"error": "Not logged in"}), 401
+    user = get_user_by_id(user_id)
+    if not user:
+        session.clear()
+        return jsonify({"error": "Not logged in"}), 401
+    return jsonify(user)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5002))
