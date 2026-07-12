@@ -1541,6 +1541,13 @@ function renderLogs(d){
   }else{
     h+=`<div style="background:rgba(192,138,46,.1);border:1px solid rgba(192,138,46,.3);border-radius:var(--r2);padding:16px;text-align:center;color:var(--accent);font-weight:600">✅ No attack patterns detected — logs appear clean!</div>`;
   }
+  if(d.anomalies&&d.anomalies.length>0){
+    h+=`<div style="font-size:13px;font-weight:600;color:var(--text);margin:20px 0 12px;display:flex;align-items:center;gap:6px">🧠 ML Anomaly Detection (${d.anomalies.length}) <span style="font-size:10px;font-weight:700;color:var(--purple);background:rgba(184,92,126,.12);border:1px solid rgba(184,92,126,.3);border-radius:20px;padding:2px 8px;letter-spacing:.3px">ISOLATION FOREST</span></div>`;
+    d.anomalies.forEach(a=>{h+=`<div class="finding-card High">
+      <div class="f-title">${a.ip} <span style="font-size:11px;font-weight:400;color:var(--muted)">(${a.request_count} requests · anomaly score ${a.anomaly_score})</span></div>
+      <div class="f-detail">Flagged as behaviorally anomalous — no signature match, detected via learned traffic patterns.</div>
+      <div class="f-rec">💡 ${a.reasons.join(', ')}</div></div>`;});
+  }
   document.getElementById('log-results').innerHTML=h;
 }
 
