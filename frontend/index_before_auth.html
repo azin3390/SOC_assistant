@@ -7,20 +7,20 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#0D1321;
-  --card:#1D2D44;
-  --card2:#243550;
-  --border:#2a3f5f;
-  --primary:#FF6B6B;
-  --accent:#4ECDC4;
-  --yellow:#FFE66D;
-  --text:#F8FAFC;
-  --muted:#8899AA;
-  --success:#10B981;
-  --warning:#FF9F43;
-  --danger:#FF6B6B;
-  --purple:#A29BFE;
-  --pink:#FD79A8;
+  --bg:#16181D;
+  --card:#1E2127;
+  --card2:#262930;
+  --border:#33363E;
+  --primary:#D9A653;
+  --accent:#C9974A;
+  --yellow:#E0B872;
+  --text:#E8E6E2;
+  --muted:#8B8C8A;
+  --success:#6E8F72;
+  --warning:#C4874A;
+  --danger:#D9A653;
+  --purple:#8A7355;
+  --pink:#A8735A;
   --font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   --mono:'SF Mono','Fira Code',monospace;
   --r:8px;--r2:12px;--r3:16px;
@@ -60,7 +60,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 .nav-item{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:10px;cursor:pointer;color:var(--muted);font-size:13px;font-weight:500;transition:all .2s cubic-bezier(.4,0,.2,1);margin-bottom:3px;position:relative}
 .nav-item:hover{background:rgba(255,255,255,.04);color:var(--text);transform:translateX(2px)}
 .nav-item:hover .ni{transform:scale(1.1)}
-.nav-item.active{background:linear-gradient(135deg,rgba(255,107,107,.16),rgba(78,205,196,.07));color:var(--primary);box-shadow:inset 0 0 0 1px rgba(255,107,107,.25),0 2px 12px rgba(255,107,107,.08)}
+.nav-item.active{background:linear-gradient(135deg,rgba(217,166,83,.16),rgba(201,151,74,.07));color:var(--primary);box-shadow:inset 0 0 0 1px rgba(217,166,83,.25),0 2px 12px rgba(217,166,83,.08)}
 .nav-item.active::before{content:'';position:absolute;left:-10px;top:50%;transform:translateY(-50%);width:3px;height:18px;background:var(--primary);border-radius:0 3px 3px 0;box-shadow:0 0 8px var(--primary)}
 .nav-item .ni{font-size:15px;width:20px;text-align:center;flex-shrink:0;transition:transform .2s}
 .nav-section{font-size:9px;font-weight:700;color:#3d4f6e;text-transform:uppercase;letter-spacing:1.2px;padding:16px 12px 7px;margin-top:2px}
@@ -93,7 +93,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 
 /* ── CARDS ── */
 .card{background:var(--card);border:1px solid var(--border);border-radius:var(--r3);padding:18px;box-shadow:var(--s1);transition:box-shadow .25s,border-color .25s}
-.card:hover{border-color:rgba(78,205,196,.25)}
+.card:hover{border-color:rgba(201,151,74,.25)}
 .card-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
 .card-title .ct-left{display:flex;align-items:center;gap:8px}
 .view-all{font-size:11px;color:var(--accent);cursor:pointer;font-weight:500;transition:opacity .15s}
@@ -102,8 +102,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 /* ── KPI CARDS ── */
 .kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px}
 .kpi-card{background:linear-gradient(150deg,var(--card),#1a2a45);border:1px solid var(--border);border-radius:var(--r3);padding:18px 16px;display:flex;align-items:flex-start;gap:13px;transition:all .25s cubic-bezier(.4,0,.2,1);cursor:default;position:relative;overflow:hidden}
-.kpi-card::after{content:'';position:absolute;top:-40%;right:-30%;width:120px;height:120px;background:radial-gradient(circle,rgba(78,205,196,.06),transparent 70%);pointer-events:none}
-.kpi-card:hover{border-color:var(--accent);box-shadow:0 8px 28px rgba(78,205,196,.14);transform:translateY(-3px)}
+.kpi-card::after{content:'';position:absolute;top:-40%;right:-30%;width:120px;height:120px;background:radial-gradient(circle,rgba(201,151,74,.06),transparent 70%);pointer-events:none}
+.kpi-card:hover{border-color:var(--accent);box-shadow:0 8px 28px rgba(201,151,74,.14);transform:translateY(-3px)}
 .kpi-card:hover .kpi-icon{transform:scale(1.08)}
 .kpi-icon{width:42px;height:42px;border-radius:var(--r2);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;transition:transform .25s;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
 .kpi-label{font-size:11px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
@@ -127,16 +127,16 @@ canvas{width:100%!important}
 
 /* ── SEVERITY BADGES ── */
 .badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.3px}
-.badge-critical{background:rgba(255,107,107,.15);color:var(--primary);border:1px solid rgba(255,107,107,.3)}
-.badge-high{background:rgba(255,159,67,.15);color:var(--warning);border:1px solid rgba(255,159,67,.3)}
-.badge-medium{background:rgba(255,230,109,.15);color:var(--yellow);border:1px solid rgba(255,230,109,.3)}
-.badge-low{background:rgba(78,205,196,.15);color:var(--accent);border:1px solid rgba(78,205,196,.3)}
+.badge-critical{background:rgba(217,166,83,.15);color:var(--primary);border:1px solid rgba(217,166,83,.3)}
+.badge-high{background:rgba(196,135,74,.15);color:var(--warning);border:1px solid rgba(196,135,74,.3)}
+.badge-medium{background:rgba(224,184,114,.15);color:var(--yellow);border:1px solid rgba(224,184,114,.3)}
+.badge-low{background:rgba(201,151,74,.15);color:var(--accent);border:1px solid rgba(201,151,74,.3)}
 
 /* Status badges */
 .status-badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px}
-.status-inprogress{background:rgba(255,107,107,.1);color:var(--primary)}
-.status-investigating{background:rgba(255,230,109,.1);color:var(--yellow)}
-.status-resolved{background:rgba(16,185,129,.1);color:var(--success)}
+.status-inprogress{background:rgba(217,166,83,.1);color:var(--primary)}
+.status-investigating{background:rgba(224,184,114,.1);color:var(--yellow)}
+.status-resolved{background:rgba(110,143,114,.1);color:var(--success)}
 
 /* ── ALERT FEED ── */
 .alert-feed-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04)}
@@ -202,10 +202,10 @@ canvas{width:100%!important}
 .msg-meta{font-size:10px;color:var(--muted);margin-top:4px;padding:0 4px}
 .msg-row.user .msg-meta{text-align:right}
 .sev-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;margin-bottom:8px}
-.sev-critical{background:rgba(255,107,107,.15);color:var(--primary);border:1px solid rgba(255,107,107,.3)}
-.sev-high{background:rgba(255,159,67,.15);color:var(--warning);border:1px solid rgba(255,159,67,.3)}
-.sev-medium{background:rgba(255,230,109,.15);color:var(--yellow);border:1px solid rgba(255,230,109,.3)}
-.sev-low{background:rgba(78,205,196,.15);color:var(--accent);border:1px solid rgba(78,205,196,.3)}
+.sev-critical{background:rgba(217,166,83,.15);color:var(--primary);border:1px solid rgba(217,166,83,.3)}
+.sev-high{background:rgba(196,135,74,.15);color:var(--warning);border:1px solid rgba(196,135,74,.3)}
+.sev-medium{background:rgba(224,184,114,.15);color:var(--yellow);border:1px solid rgba(224,184,114,.3)}
+.sev-low{background:rgba(201,151,74,.15);color:var(--accent);border:1px solid rgba(201,151,74,.3)}
 .typing{display:none;align-items:center;gap:10px;padding:0 20px 10px}
 .typing.on{display:flex}
 .typing-bubble{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:10px 16px;display:flex;gap:4px}
@@ -218,7 +218,7 @@ canvas{width:100%!important}
 .qbtn:hover{background:var(--primary);color:white;border-color:var(--primary);transform:translateY(-1px)}
 .input-row{display:flex;gap:10px;align-items:center}
 .chat-input{flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r2);padding:11px 16px;color:var(--text);font-size:13px;font-family:var(--font);outline:none;transition:all .2s}
-.chat-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(78,205,196,.1)}
+.chat-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(201,151,74,.1)}
 .send-btn{width:42px;height:42px;border-radius:var(--r2);background:linear-gradient(135deg,var(--primary),var(--purple));border:none;cursor:pointer;font-size:17px;color:white;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
 .send-btn:hover{transform:translateY(-1px);opacity:.9}
 .chat-sidebar{width:260px;flex-shrink:0;border-left:1px solid var(--border);background:var(--card);overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
@@ -287,9 +287,9 @@ canvas{width:100%!important}
 .f-table td{padding:8px 6px}
 .f-table td:last-child{text-align:right}
 .reason{border-radius:var(--r2);padding:10px 14px;margin-bottom:8px;border-left:3px solid;background:var(--card);border:1px solid var(--border)}
-.reason.high{border-left:3px solid var(--primary);background:rgba(255,107,107,.05)}
-.reason.medium{border-left:3px solid var(--warning);background:rgba(255,159,67,.05)}
-.reason.low,.reason.none{border-left:3px solid var(--accent);background:rgba(78,205,196,.05)}
+.reason.high{border-left:3px solid var(--primary);background:rgba(217,166,83,.05)}
+.reason.medium{border-left:3px solid var(--warning);background:rgba(196,135,74,.05)}
+.reason.low,.reason.none{border-left:3px solid var(--accent);background:rgba(201,151,74,.05)}
 .r-flag{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
 .r-detail{font-size:12px;color:var(--muted);line-height:1.5}
 
@@ -450,6 +450,37 @@ canvas{width:100%!important}
 </style>
 </head>
 <body>
+<div id="auth-overlay" style="position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center">
+  <div style="width:360px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:32px;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--purple));display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 12px">🛡️</div>
+      <div style="font-size:18px;font-weight:800;color:var(--text)">Sentinel <span style="color:var(--accent)">SOC</span></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px" id="auth-subtitle">Sign in to your account</div>
+    </div>
+
+    <div id="auth-error" style="display:none;background:rgba(217,166,83,.1);border:1px solid rgba(217,166,83,.3);color:var(--primary);font-size:12px;padding:8px 12px;border-radius:8px;margin-bottom:14px"></div>
+
+    <div id="auth-register-fields" style="display:none">
+      <label style="font-size:11px;color:var(--muted);font-weight:600;display:block;margin-bottom:5px">Display Name</label>
+      <input type="text" id="auth-display-name" placeholder="e.g. Azin Iftikhar" style="width:100%;padding:10px 12px;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;margin-bottom:14px">
+    </div>
+
+    <label style="font-size:11px;color:var(--muted);font-weight:600;display:block;margin-bottom:5px">Username</label>
+    <input type="text" id="auth-username" placeholder="username" style="width:100%;padding:10px 12px;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;margin-bottom:14px">
+
+    <label style="font-size:11px;color:var(--muted);font-weight:600;display:block;margin-bottom:5px">Password</label>
+    <input type="password" id="auth-password" placeholder="••••••••" style="width:100%;padding:10px 12px;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none;margin-bottom:18px">
+
+    <button id="auth-submit-btn" onclick="submitAuth()" style="width:100%;padding:11px;background:linear-gradient(135deg,var(--primary),var(--purple));color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:14px">Sign In</button>
+
+    <div style="text-align:center;font-size:12px;color:var(--muted)">
+      <span id="auth-toggle-text">Don't have an account?</span>
+      <span onclick="toggleAuthMode()" style="color:var(--accent);cursor:pointer;font-weight:600" id="auth-toggle-link">Create one</span>
+    </div>
+  </div>
+</div>
+
+
 
 <!-- ══ TOPBAR ══ -->
 <div class="topbar">
@@ -472,12 +503,11 @@ canvas{width:100%!important}
     </div>
     <div class="tb-btn" title="Help">❓</div>
     <div class="admin-pill" onclick="toggleAdminMenu()" style="position:relative">
-      <div class="admin-avatar">A</div>
-      <div class="admin-name">Admin ▾</div>
-      <div id="admin-menu" style="display:none;position:absolute;top:44px;right:0;width:160px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:6px;z-index:200;box-shadow:0 12px 32px rgba(0,0,0,.5);text-align:left">
-        <div style="font-size:12px;color:var(--text);padding:8px 10px;cursor:pointer;border-radius:6px">👤 Profile</div>
-        <div style="font-size:12px;color:var(--text);padding:8px 10px;cursor:pointer;border-radius:6px">⚙️ Preferences</div>
-        <div style="font-size:12px;color:var(--primary);padding:8px 10px;cursor:pointer;border-radius:6px">🚪 Sign out</div>
+      <div class="admin-avatar" id="user-avatar">A</div>
+      <div class="admin-name" id="user-display-name">Loading… ▾</div>
+      <div id="admin-menu" style="display:none;position:absolute;top:44px;right:0;width:180px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:6px;z-index:200;box-shadow:0 12px 32px rgba(0,0,0,.5);text-align:left">
+        <div style="font-size:12px;color:var(--text);padding:8px 10px;font-weight:600;border-bottom:1px solid var(--border);margin-bottom:4px" id="admin-menu-username">—</div>
+        <div style="font-size:12px;color:var(--primary);padding:8px 10px;cursor:pointer;border-radius:6px" onclick="signOut()">🚪 Sign out</div>
       </div>
     </div>
   </div>
@@ -531,11 +561,11 @@ canvas{width:100%!important}
 
     <!-- KPI Cards -->
     <div class="kpi-grid" id="kpi-grid">
-      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(255,107,107,.15)">🔔</div><div><div class="kpi-label">Total Alerts</div><div class="kpi-value" id="kpi-total">—</div><div><span class="kpi-change up" id="kpi-total-ch">—</span><span class="kpi-vs">vs yesterday</span></div></div></div>
-      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(255,107,107,.2)">🚨</div><div><div class="kpi-label">Critical Alerts</div><div class="kpi-value" id="kpi-critical">—</div><div><span class="kpi-change up" id="kpi-critical-ch">—</span><span class="kpi-vs">vs yesterday</span></div></div></div>
-      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(255,230,109,.15)">⚡</div><div><div class="kpi-label">Incidents</div><div class="kpi-value" id="kpi-incidents">—</div><div><span class="kpi-change down" id="kpi-incidents-ch">—</span><span class="kpi-vs">vs yesterday</span></div></div></div>
-      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(78,205,196,.15)">💻</div><div><div class="kpi-label">Assets Monitored</div><div class="kpi-value" id="kpi-assets">—</div><div><span class="kpi-change up" id="kpi-assets-ch">—</span><span class="kpi-vs">vs yesterday</span></div></div></div>
-      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(162,155,254,.15)">👥</div><div><div class="kpi-label">Users Monitored</div><div class="kpi-value" id="kpi-users">—</div><div><span class="kpi-change up" id="kpi-users-ch">—</span><span class="kpi-vs">vs yesterday</span></div></div></div>
+      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(217,166,83,.15)">🔔</div><div><div class="kpi-label">Total Alerts</div><div class="kpi-value" id="kpi-total">—</div><div><span class="kpi-change up" id="kpi-total-ch">—</span><span class="kpi-vs">vs yesterday</span></div></div></div>
+      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(217,166,83,.2)">🚨</div><div><div class="kpi-label">Critical Alerts</div><div class="kpi-value" id="kpi-critical">—</div><div><span class="kpi-change up" id="kpi-critical-ch">—</span><span class="kpi-vs">vs yesterday</span></div></div></div>
+      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(224,184,114,.15)">⚡</div><div><div class="kpi-label">Incidents</div><div class="kpi-value" id="kpi-incidents">—</div><div><span class="kpi-change down" id="kpi-incidents-ch">—</span><span class="kpi-vs">vs yesterday</span></div></div></div>
+      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(201,151,74,.15)">💻</div><div><div class="kpi-label">Assets Monitored</div><div class="kpi-value" id="kpi-assets">—</div><div><span class="kpi-change up" id="kpi-assets-ch">—</span><span class="kpi-vs">vs yesterday</span></div></div></div>
+      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(138,115,85,.15)">👥</div><div><div class="kpi-label">Users Monitored</div><div class="kpi-value" id="kpi-users">—</div><div><span class="kpi-change up" id="kpi-users-ch">—</span><span class="kpi-vs">vs yesterday</span></div></div></div>
     </div>
 
     <!-- Charts Row -->
@@ -860,9 +890,9 @@ AI will reconstruct the full attack chain…"></textarea>
 
       <div class="galaxy-font" style="padding:16px 20px 12px;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;flex-shrink:0;z-index:30;position:relative">
         <div class="glass-card" style="padding:12px 14px;display:flex;align-items:center;gap:12px">
-          <div style="width:36px;height:36px;border-radius:10px;background:rgba(236,72,153,.12);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 16px rgba(236,72,153,.15)">🔥</div>
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(168,115,90,.12);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 16px rgba(168,115,90,.15)">🔥</div>
           <div style="flex:1"><div style="font-size:9px;color:#94A3B8;text-transform:uppercase;letter-spacing:1px;font-weight:600">Total Threats</div><div style="font-size:18px;font-weight:700;color:#F1F5F9">24,841</div><div style="font-size:10px;color:#34D399;font-weight:600">↑ 12.6%</div></div>
-          <canvas class="galaxy-spark" data-color="#EC4899" width="46" height="26"></canvas>
+          <canvas class="galaxy-spark" data-color="#A8735A" width="46" height="26"></canvas>
         </div>
         <div class="glass-card" style="padding:12px 14px;display:flex;align-items:center;gap:12px">
           <div style="width:36px;height:36px;border-radius:10px;background:rgba(56,189,248,.12);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 16px rgba(56,189,248,.15)">🛡</div>
@@ -870,9 +900,9 @@ AI will reconstruct the full attack chain…"></textarea>
           <canvas class="galaxy-spark" data-color="#38BDF8" width="46" height="26"></canvas>
         </div>
         <div class="glass-card" style="padding:12px 14px;display:flex;align-items:center;gap:12px">
-          <div style="width:36px;height:36px;border-radius:10px;background:rgba(139,92,246,.12);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 16px rgba(139,92,246,.15)">⚡</div>
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(138,115,85,.12);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 16px rgba(138,115,85,.15)">⚡</div>
           <div style="flex:1"><div style="font-size:9px;color:#94A3B8;text-transform:uppercase;letter-spacing:1px;font-weight:600">Active Nodes</div><div style="font-size:18px;font-weight:700;color:#F1F5F9" id="galaxy-active-count">18,942</div><div style="font-size:10px;color:#34D399;font-weight:600">↑ 5.7%</div></div>
-          <canvas class="galaxy-spark" data-color="#8B5CF6" width="46" height="26"></canvas>
+          <canvas class="galaxy-spark" data-color="#8A7355" width="46" height="26"></canvas>
         </div>
         <div class="glass-card" style="padding:12px 14px;display:flex;align-items:center;gap:12px">
           <div style="width:36px;height:36px;border-radius:10px;background:rgba(52,211,153,.12);display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 16px rgba(52,211,153,.15)">✦</div>
@@ -895,35 +925,35 @@ AI will reconstruct the full attack chain…"></textarea>
       </div>
     </div>
 
-    <div style="width:280px;flex-shrink:0;background:rgba(10,8,24,.9);border-left:1px solid rgba(139,92,246,.2);padding:16px;display:flex;flex-direction:column;gap:12px;overflow-y:auto">
+    <div style="width:280px;flex-shrink:0;background:rgba(10,8,24,.9);border-left:1px solid rgba(138,115,85,.2);padding:16px;display:flex;flex-direction:column;gap:12px;overflow-y:auto">
 
-      <div style="background:rgba(18,16,58,.6);border:1px solid rgba(139,92,246,.2);border-radius:12px;padding:14px">
+      <div style="background:rgba(18,16,58,.6);border:1px solid rgba(138,115,85,.2);border-radius:12px;padding:14px">
         <div style="font-size:9px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:12px">Threat Level</div>
         <canvas id="tl-gauge-canvas" width="90" height="60" style="display:block;margin:0 auto"></canvas>
-        <div style="text-align:center;font-size:16px;font-weight:800;color:#FFE66D;letter-spacing:1px;margin-top:4px">MODERATE</div>
+        <div style="text-align:center;font-size:16px;font-weight:800;color:#E0B872;letter-spacing:1px;margin-top:4px">MODERATE</div>
         <div style="margin-top:10px;display:flex;flex-direction:column;gap:5px">
-          <div style="display:flex;align-items:center;gap:8px;font-size:11px"><div style="width:7px;height:7px;border-radius:50%;background:#FF6B6B;box-shadow:0 0 5px #FF6B6B"></div><span style="color:var(--muted);flex:1">CRITICAL</span><span style="font-weight:700;color:var(--text)">12</span></div>
-          <div style="display:flex;align-items:center;gap:8px;font-size:11px"><div style="width:7px;height:7px;border-radius:50%;background:#FF9F43;box-shadow:0 0 5px #FF9F43"></div><span style="color:var(--muted);flex:1">HIGH</span><span style="font-weight:700;color:var(--text)">28</span></div>
-          <div style="display:flex;align-items:center;gap:8px;font-size:11px"><div style="width:7px;height:7px;border-radius:50%;background:#FFE66D;box-shadow:0 0 5px #FFE66D"></div><span style="color:var(--muted);flex:1">MEDIUM</span><span style="font-weight:700;color:var(--text)">56</span></div>
-          <div style="display:flex;align-items:center;gap:8px;font-size:11px"><div style="width:7px;height:7px;border-radius:50%;background:#4ECDC4;box-shadow:0 0 5px #4ECDC4"></div><span style="color:var(--muted);flex:1">LOW</span><span style="font-weight:700;color:var(--text)">128</span></div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px"><div style="width:7px;height:7px;border-radius:50%;background:#D9A653;box-shadow:0 0 5px #D9A653"></div><span style="color:var(--muted);flex:1">CRITICAL</span><span style="font-weight:700;color:var(--text)">12</span></div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px"><div style="width:7px;height:7px;border-radius:50%;background:#C4874A;box-shadow:0 0 5px #C4874A"></div><span style="color:var(--muted);flex:1">HIGH</span><span style="font-weight:700;color:var(--text)">28</span></div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px"><div style="width:7px;height:7px;border-radius:50%;background:#E0B872;box-shadow:0 0 5px #E0B872"></div><span style="color:var(--muted);flex:1">MEDIUM</span><span style="font-weight:700;color:var(--text)">56</span></div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:11px"><div style="width:7px;height:7px;border-radius:50%;background:#C9974A;box-shadow:0 0 5px #C9974A"></div><span style="color:var(--muted);flex:1">LOW</span><span style="font-weight:700;color:var(--text)">128</span></div>
         </div>
       </div>
 
-      <div style="background:rgba(18,16,58,.6);border:1px solid rgba(139,92,246,.2);border-radius:12px;padding:14px">
+      <div style="background:rgba(18,16,58,.6);border:1px solid rgba(138,115,85,.2);border-radius:12px;padding:14px">
         <div style="font-size:9px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:12px">Top Attack Vectors</div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:11px"><span style="color:var(--muted);width:80px">Brute Force</span><div style="flex:1;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden"><div style="height:100%;width:32%;background:#FF6B6B;border-radius:2px"></div></div><span style="color:var(--text);font-weight:600;width:28px;text-align:right">32%</span></div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:11px"><span style="color:var(--muted);width:80px">Phishing</span><div style="flex:1;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden"><div style="height:100%;width:24%;background:#FF9F43;border-radius:2px"></div></div><span style="color:var(--text);font-weight:600;width:28px;text-align:right">24%</span></div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:11px"><span style="color:var(--muted);width:80px">Malware</span><div style="flex:1;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden"><div style="height:100%;width:18%;background:#FFE66D;border-radius:2px"></div></div><span style="color:var(--text);font-weight:600;width:28px;text-align:right">18%</span></div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:11px"><span style="color:var(--muted);width:80px">SQL Injection</span><div style="flex:1;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden"><div style="height:100%;width:12%;background:#4ECDC4;border-radius:2px"></div></div><span style="color:var(--text);font-weight:600;width:28px;text-align:right">12%</span></div>
-        <div style="display:flex;align-items:center;gap:8px;font-size:11px"><span style="color:var(--muted);width:80px">DDoS</span><div style="flex:1;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden"><div style="height:100%;width:8%;background:#A29BFE;border-radius:2px"></div></div><span style="color:var(--text);font-weight:600;width:28px;text-align:right">8%</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:11px"><span style="color:var(--muted);width:80px">Brute Force</span><div style="flex:1;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden"><div style="height:100%;width:32%;background:#D9A653;border-radius:2px"></div></div><span style="color:var(--text);font-weight:600;width:28px;text-align:right">32%</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:11px"><span style="color:var(--muted);width:80px">Phishing</span><div style="flex:1;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden"><div style="height:100%;width:24%;background:#C4874A;border-radius:2px"></div></div><span style="color:var(--text);font-weight:600;width:28px;text-align:right">24%</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:11px"><span style="color:var(--muted);width:80px">Malware</span><div style="flex:1;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden"><div style="height:100%;width:18%;background:#E0B872;border-radius:2px"></div></div><span style="color:var(--text);font-weight:600;width:28px;text-align:right">18%</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:11px"><span style="color:var(--muted);width:80px">SQL Injection</span><div style="flex:1;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden"><div style="height:100%;width:12%;background:#C9974A;border-radius:2px"></div></div><span style="color:var(--text);font-weight:600;width:28px;text-align:right">12%</span></div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:11px"><span style="color:var(--muted);width:80px">DDoS</span><div style="flex:1;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden"><div style="height:100%;width:8%;background:#8A7355;border-radius:2px"></div></div><span style="color:var(--text);font-weight:600;width:28px;text-align:right">8%</span></div>
       </div>
 
-      <div style="background:rgba(18,16,58,.6);border:1px solid rgba(139,92,246,.2);border-radius:12px;padding:14px;flex:1">
+      <div style="background:rgba(18,16,58,.6);border:1px solid rgba(138,115,85,.2);border-radius:12px;padding:14px;flex:1">
         <div style="font-size:9px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:12px">Recent Alerts</div>
-        <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px"><span style="color:var(--muted);font-family:monospace;width:60px">10:24 PM</span><div style="width:6px;height:6px;border-radius:50%;background:#FF6B6B"></div><span style="color:#c8beff">Brute Force Attempt</span></div>
-        <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px"><span style="color:var(--muted);font-family:monospace;width:60px">10:18 PM</span><div style="width:6px;height:6px;border-radius:50%;background:#FF6B6B"></div><span style="color:#c8beff">Malware Detected</span></div>
-        <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px"><span style="color:var(--muted);font-family:monospace;width:60px">10:15 PM</span><div style="width:6px;height:6px;border-radius:50%;background:#FFE66D"></div><span style="color:#c8beff">Unusual Login</span></div>
-        <div style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:11px"><span style="color:var(--muted);font-family:monospace;width:60px">10:10 PM</span><div style="width:6px;height:6px;border-radius:50%;background:#4ECDC4"></div><span style="color:#c8beff">Phishing Blocked</span></div>
+        <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px"><span style="color:var(--muted);font-family:monospace;width:60px">10:24 PM</span><div style="width:6px;height:6px;border-radius:50%;background:#D9A653"></div><span style="color:#c8beff">Brute Force Attempt</span></div>
+        <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px"><span style="color:var(--muted);font-family:monospace;width:60px">10:18 PM</span><div style="width:6px;height:6px;border-radius:50%;background:#D9A653"></div><span style="color:#c8beff">Malware Detected</span></div>
+        <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px"><span style="color:var(--muted);font-family:monospace;width:60px">10:15 PM</span><div style="width:6px;height:6px;border-radius:50%;background:#E0B872"></div><span style="color:#c8beff">Unusual Login</span></div>
+        <div style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:11px"><span style="color:var(--muted);font-family:monospace;width:60px">10:10 PM</span><div style="width:6px;height:6px;border-radius:50%;background:#C9974A"></div><span style="color:#c8beff">Phishing Blocked</span></div>
       </div>
 
     </div>
@@ -968,10 +998,10 @@ AI will reconstruct the full attack chain…"></textarea>
   </div>
   <div class="page-content">
     <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
-      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(78,205,196,.15)">🖥️</div><div><div class="kpi-label">Workstations</div><div class="kpi-value">842</div><div class="kpi-change up">44.4%</div></div></div>
-      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(162,155,254,.15)">🗄️</div><div><div class="kpi-label">Servers</div><div class="kpi-value">512</div><div class="kpi-change up">27.0%</div></div></div>
-      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(255,230,109,.15)">🌐</div><div><div class="kpi-label">Network Devices</div><div class="kpi-value">243</div><div class="kpi-change up">12.8%</div></div></div>
-      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(253,121,168,.15)">📱</div><div><div class="kpi-label">Other Devices</div><div class="kpi-value">300</div><div class="kpi-change up">15.8%</div></div></div>
+      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(201,151,74,.15)">🖥️</div><div><div class="kpi-label">Workstations</div><div class="kpi-value">842</div><div class="kpi-change up">44.4%</div></div></div>
+      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(138,115,85,.15)">🗄️</div><div><div class="kpi-label">Servers</div><div class="kpi-value">512</div><div class="kpi-change up">27.0%</div></div></div>
+      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(224,184,114,.15)">🌐</div><div><div class="kpi-label">Network Devices</div><div class="kpi-value">243</div><div class="kpi-change up">12.8%</div></div></div>
+      <div class="kpi-card"><div class="kpi-icon" style="background:rgba(168,115,90,.15)">📱</div><div><div class="kpi-label">Other Devices</div><div class="kpi-value">300</div><div class="kpi-change up">15.8%</div></div></div>
     </div>
     <div class="card">
       <div class="card-title"><div class="ct-left">Asset Inventory</div></div>
@@ -1226,8 +1256,8 @@ async function drawAlertsChart(){
     for(let i=0;i<=4;i++){const y=pad.t+ch*(1-i/4);ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke()}
     // Gradient fill
     const grad=ctx.createLinearGradient(0,pad.t,0,H-pad.b);
-    grad.addColorStop(0,'rgba(78,205,196,.3)');
-    grad.addColorStop(1,'rgba(78,205,196,.0)');
+    grad.addColorStop(0,'rgba(201,151,74,.3)');
+    grad.addColorStop(1,'rgba(201,151,74,.0)');
     ctx.fillStyle=grad;
     ctx.beginPath();
     vals.forEach((v,i)=>{
@@ -1271,7 +1301,7 @@ async function drawSeverityChart(){
       angle+=sweep;
     });
     // Hole
-    ctx.beginPath();ctx.arc(cx,cy,ir,0,2*Math.PI);ctx.fillStyle='#1D2D44';ctx.fill();
+    ctx.beginPath();ctx.arc(cx,cy,ir,0,2*Math.PI);ctx.fillStyle='#1E2127';ctx.fill();
     document.getElementById('donut-total').textContent=d.total.toLocaleString();
     document.getElementById('severity-legend').innerHTML=d.data.map(s=>`
       <div class="donut-legend-item">
@@ -1427,7 +1457,7 @@ function renderLogs(d){
       <div class="f-title">${f.attack_type} <span style="font-size:11px;font-weight:400;color:var(--muted)">(${f.occurrences} occurrence${f.occurrences>1?'s':''})</span></div>
       <div class="f-detail">${f.description}</div><div class="f-rec">💡 ${f.recommendation}</div></div>`;});
   }else{
-    h+=`<div style="background:rgba(78,205,196,.1);border:1px solid rgba(78,205,196,.3);border-radius:var(--r2);padding:16px;text-align:center;color:var(--accent);font-weight:600">✅ No attack patterns detected — logs appear clean!</div>`;
+    h+=`<div style="background:rgba(201,151,74,.1);border:1px solid rgba(201,151,74,.3);border-radius:var(--r2);padding:16px;text-align:center;color:var(--accent);font-weight:600">✅ No attack patterns detected — logs appear clean!</div>`;
   }
   document.getElementById('log-results').innerHTML=h;
 }
@@ -1460,8 +1490,8 @@ async function scanURL(){
 
 function renderURL(d){
   const c=d.verdict==='Phishing'?'var(--primary)':d.verdict==='Suspicious'?'var(--warning)':'var(--accent)';
-  const bg=d.verdict==='Phishing'?'rgba(255,107,107,.1)':d.verdict==='Suspicious'?'rgba(255,159,67,.1)':'rgba(78,205,196,.1)';
-  const bc=d.verdict==='Phishing'?'rgba(255,107,107,.3)':d.verdict==='Suspicious'?'rgba(255,159,67,.3)':'rgba(78,205,196,.3)';
+  const bg=d.verdict==='Phishing'?'rgba(217,166,83,.1)':d.verdict==='Suspicious'?'rgba(196,135,74,.1)':'rgba(201,151,74,.1)';
+  const bc=d.verdict==='Phishing'?'rgba(217,166,83,.3)':d.verdict==='Suspicious'?'rgba(196,135,74,.3)':'rgba(201,151,74,.3)';
   const ml=d.ml_analysis||{};
   let h=`<div class="risk-card">
     <div style="display:flex;align-items:center;justify-content:space-between">
@@ -1635,12 +1665,12 @@ async function analyzeCrimeScene(){
 
 function renderCrime(data){
   const SC={
-    Critical:{accent:'#FF6B6B',bg:'rgba(255,107,107,.15)',border:'rgba(255,107,107,.3)',text:'#FF6B6B',note:'#ffe8e8'},
-    High:    {accent:'#FF9F43',bg:'rgba(255,159,67,.15)',border:'rgba(255,159,67,.3)',text:'#FF9F43',note:'#fff3e0'},
-    Medium:  {accent:'#FFE66D',bg:'rgba(255,230,109,.15)',border:'rgba(255,230,109,.3)',text:'#FFE66D',note:'#fffde7'},
-    Low:     {accent:'#4ECDC4',bg:'rgba(78,205,196,.15)',border:'rgba(78,205,196,.3)',text:'#4ECDC4',note:'#e0f7f6'},
+    Critical:{accent:'#D9A653',bg:'rgba(217,166,83,.15)',border:'rgba(217,166,83,.3)',text:'#D9A653',note:'#ffe8e8'},
+    High:    {accent:'#C4874A',bg:'rgba(196,135,74,.15)',border:'rgba(196,135,74,.3)',text:'#C4874A',note:'#fff3e0'},
+    Medium:  {accent:'#E0B872',bg:'rgba(224,184,114,.15)',border:'rgba(224,184,114,.3)',text:'#E0B872',note:'#fffde7'},
+    Low:     {accent:'#C9974A',bg:'rgba(201,151,74,.15)',border:'rgba(201,151,74,.3)',text:'#C9974A',note:'#e0f7f6'},
   };
-  const TL=['#FF6B6B','#4ECDC4','#FFE66D','#A29BFE','#FD79A8','#FF9F43','#74B9FF','#55EFC4'];
+  const TL=['#D9A653','#C9974A','#E0B872','#8A7355','#A8735A','#C4874A','#74B9FF','#55EFC4'];
 
   const ve=document.getElementById('cs-verdict');
   const cmap={'#22c55e':'var(--accent)','#ef4444':'var(--primary)','#f97316':'var(--warning)','#64748b':'var(--muted)'};
@@ -1878,6 +1908,7 @@ function drawRedStrings(cardEls,cards){
 
 // ══ Auto-scan URL from PhishGuard ════════════════════════════
 window.addEventListener('load',()=>{
+  checkSession();
   loadOverview();
   setupFilterChips();
   const p=new URLSearchParams(window.location.search);
@@ -1926,7 +1957,7 @@ function showFallbackData(){
 
   var at=document.getElementById('attack-types');
   if(at){
-    var types=[{name:'Malware',pct:31,color:'#FF6B6B',count:812},{name:'Phishing',pct:23,color:'#FF9F43',count:601},{name:'Brute Force',pct:16,color:'#FFE66D',count:423},{name:'Exploitation',pct:12,color:'#4ECDC4',count:320},{name:'DDoS',pct:8,color:'#A29BFE',count:210}];
+    var types=[{name:'Malware',pct:31,color:'#D9A653',count:812},{name:'Phishing',pct:23,color:'#C4874A',count:601},{name:'Brute Force',pct:16,color:'#E0B872',count:423},{name:'Exploitation',pct:12,color:'#C9974A',count:320},{name:'DDoS',pct:8,color:'#8A7355',count:210}];
     at.innerHTML='';
     types.forEach(function(t){var d=document.createElement('div');d.className='attack-item';d.innerHTML='<div class="attack-name">'+t.name+'</div><div class="attack-bar-wrap"><div class="attack-bar" style="width:'+t.pct+'%;background:'+t.color+'"></div></div><div class="attack-count">'+t.count+'</div>';at.appendChild(d);});
   }
@@ -1958,7 +1989,7 @@ function showFallbackData(){
 
   var sl=document.getElementById('severity-legend');
   if(sl){
-    var sevs=[{color:'#FF6B6B',label:'Critical',count:'120',pct:'4.2%'},{color:'#FF9F43',label:'High',count:'482',pct:'17%'},{color:'#FFE66D',label:'Medium',count:'1,286',pct:'45.3%'},{color:'#4ECDC4',label:'Low',count:'954',pct:'33.5%'}];
+    var sevs=[{color:'#D9A653',label:'Critical',count:'120',pct:'4.2%'},{color:'#C4874A',label:'High',count:'482',pct:'17%'},{color:'#E0B872',label:'Medium',count:'1,286',pct:'45.3%'},{color:'#C9974A',label:'Low',count:'954',pct:'33.5%'}];
     sl.innerHTML='';
     sevs.forEach(function(s){var d=document.createElement('div');d.className='donut-legend-item';d.innerHTML='<div class="dl-dot" style="background:'+s.color+'"></div><span class="dl-label">'+s.label+'</span><span class="dl-count">'+s.count+'</span><span class="dl-pct">('+s.pct+')</span>';sl.appendChild(d);});
   }
@@ -1980,11 +2011,11 @@ function drawStaticCharts(){
     ctx.clearRect(0,0,W,H);
     for(var i=0;i<=4;i++){var y=pad.t+ch*(1-i/4);ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1;ctx.stroke();}
     var grad=ctx.createLinearGradient(0,pad.t,0,H-pad.b);
-    grad.addColorStop(0,'rgba(78,205,196,.3)');grad.addColorStop(1,'rgba(78,205,196,.0)');
+    grad.addColorStop(0,'rgba(201,151,74,.3)');grad.addColorStop(1,'rgba(201,151,74,.0)');
     ctx.fillStyle=grad;ctx.beginPath();
     vals.forEach(function(v,i){var x=pad.l+cw*i/(vals.length-1);var y=pad.t+ch*(1-(v-min)/(max-min));if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});
     ctx.lineTo(pad.l+cw,H-pad.b);ctx.lineTo(pad.l,H-pad.b);ctx.closePath();ctx.fill();
-    ctx.strokeStyle='#4ECDC4';ctx.lineWidth=2;ctx.beginPath();
+    ctx.strokeStyle='#C9974A';ctx.lineWidth=2;ctx.beginPath();
     vals.forEach(function(v,i){var x=pad.l+cw*i/(vals.length-1);var y=pad.t+ch*(1-(v-min)/(max-min));if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});
     ctx.stroke();
   }catch(e){}
@@ -1994,10 +2025,10 @@ function drawStaticCharts(){
     if(!canvas2)return;
     canvas2.width=130;canvas2.height=130;
     var ctx2=canvas2.getContext('2d');
-    var segs=[{pct:4.2,color:'#FF6B6B'},{pct:17,color:'#FF9F43'},{pct:45.3,color:'#FFE66D'},{pct:33.5,color:'#4ECDC4'}];
+    var segs=[{pct:4.2,color:'#D9A653'},{pct:17,color:'#C4874A'},{pct:45.3,color:'#E0B872'},{pct:33.5,color:'#C9974A'}];
     var angle=-Math.PI/2;
     segs.forEach(function(s){var sweep=2*Math.PI*s.pct/100;ctx2.beginPath();ctx2.moveTo(65,65);ctx2.arc(65,65,50,angle,angle+sweep);ctx2.closePath();ctx2.fillStyle=s.color;ctx2.fill();angle+=sweep;});
-    ctx2.beginPath();ctx2.arc(65,65,34,0,2*Math.PI);ctx2.fillStyle='#1D2D44';ctx2.fill();
+    ctx2.beginPath();ctx2.arc(65,65,34,0,2*Math.PI);ctx2.fillStyle='#1E2127';ctx2.fill();
   }catch(e){}
 }
 
@@ -2086,7 +2117,7 @@ function viewIncident(id){
     var rows=document.querySelectorAll('#incidents-full-tbody tr, #page-incidents table tbody tr');
     rows.forEach(function(row){
       if(row.textContent.indexOf(id)>-1){
-        row.style.background='rgba(255,107,107,.08)';
+        row.style.background='rgba(217,166,83,.08)';
         row.scrollIntoView({behavior:'smooth',block:'center'});
         setTimeout(function(){row.style.background='';},2000);
       }
@@ -2156,12 +2187,12 @@ function drawThreatGauge(){
   ctx.beginPath();ctx.arc(cx,cy,r,Math.PI*.75,Math.PI*2.25);
   ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=7;ctx.lineCap='round';ctx.stroke();
   var ga=ctx.createLinearGradient(0,0,90,0);
-  ga.addColorStop(0,'#10B981');ga.addColorStop(.5,'#FFE66D');ga.addColorStop(1,'#FF6B6B');
+  ga.addColorStop(0,'#6E8F72');ga.addColorStop(.5,'#E0B872');ga.addColorStop(1,'#D9A653');
   ctx.beginPath();ctx.arc(cx,cy,r,Math.PI*.75,Math.PI*.75+Math.PI*1.5*.55);
   ctx.strokeStyle=ga;ctx.lineWidth=7;ctx.lineCap='round';ctx.stroke();
   var needleAngle=Math.PI*.75+Math.PI*1.5*.55;
   ctx.beginPath();ctx.arc(cx+Math.cos(needleAngle)*r,cy+Math.sin(needleAngle)*r,4,0,Math.PI*2);
-  ctx.fillStyle='#FFE66D';ctx.fill();
+  ctx.fillStyle='#E0B872';ctx.fill();
 }
 
 
@@ -2179,7 +2210,7 @@ function smoothPath(ctx,pts){
 function drawGalaxySparklines(){
   document.querySelectorAll('.galaxy-spark').forEach(function(c){
     var ctx=c.getContext('2d');
-    var color=c.getAttribute('data-color')||'#8B5CF6';
+    var color=c.getAttribute('data-color')||'#8A7355';
     var W=c.width,H=c.height;
     var vals=[];
     var seed=30;
@@ -2222,7 +2253,7 @@ function animateGalaxyBg(canvas){
     var bg=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(canvas.width,canvas.height)*.7);
     bg.addColorStop(0,'rgba(40,20,80,.5)');bg.addColorStop(.5,'rgba(15,8,40,.8)');bg.addColorStop(1,'rgba(5,3,15,1)');
     ctx.fillStyle=bg;ctx.fillRect(0,0,canvas.width,canvas.height);
-    [{x:cx*.6,y:cy*.6,r:220,c:'rgba(139,92,246,.07)'},{x:cx*1.4,y:cy*.7,r:190,c:'rgba(6,182,212,.05)'}].forEach(function(n){
+    [{x:cx*.6,y:cy*.6,r:220,c:'rgba(138,115,85,.07)'},{x:cx*1.4,y:cy*.7,r:190,c:'rgba(107,113,120,.05)'}].forEach(function(n){
       var g=ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,n.r);g.addColorStop(0,n.c);g.addColorStop(1,'transparent');
       ctx.fillStyle=g;ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);ctx.fill();
     });
@@ -2317,7 +2348,7 @@ function placeThreatOrbs(){
   layer.querySelectorAll('.threat-orb').forEach(function(e){e.remove();});
   orbitingThreats=[];
   var W=layer.offsetWidth,H=layer.offsetHeight;
-  var sevColors={critical:'#FF6B6B',high:'#FF9F43',medium:'#FFE66D',low:'#4ECDC4'};
+  var sevColors={critical:'#D9A653',high:'#C4874A',medium:'#E0B872',low:'#C9974A'};
   var sevSize={critical:18,high:15,medium:13,low:11};
   var tilt=-15*Math.PI/180;
 
@@ -2620,7 +2651,7 @@ async function analyzeContainment(){
 }
 
 function renderContainment(d){
-  var stageColors={"Credential Theft":"#FF6B6B","Lateral Movement":"#FF9F43","Data Exfiltration":"#A29BFE","Privilege Escalation":"#FFE66D","Ransomware Deployment":"#FF6B6B","Initial Access":"#4ECDC4"};
+  var stageColors={"Credential Theft":"#D9A653","Lateral Movement":"#C4874A","Data Exfiltration":"#8A7355","Privilege Escalation":"#E0B872","Ransomware Deployment":"#D9A653","Initial Access":"#C9974A"};
 
   // Header with countdown gauge
   var nextMin=d.next_stage?d.next_stage.minutes_from_now:0;
@@ -2641,9 +2672,9 @@ function renderContainment(d){
 
   // "If no action is taken" milestone cards
   var milestones=[
-    {name:"Credential Theft",time:"10 MINUTES",sub:"Attackers can steal valid credentials",color:"#FF6B6B",icon:"💳"},
-    {name:"Lateral Movement",time:"45 MINUTES",sub:"Attackers can move through your network",color:"#FF9F43",icon:"🔀"},
-    {name:"Data Exfiltration",time:"2 HOURS",sub:"Attackers can exfiltrate sensitive data",color:"#A29BFE",icon:"☁️"}
+    {name:"Credential Theft",time:"10 MINUTES",sub:"Attackers can steal valid credentials",color:"#D9A653",icon:"💳"},
+    {name:"Lateral Movement",time:"45 MINUTES",sub:"Attackers can move through your network",color:"#C4874A",icon:"🔀"},
+    {name:"Data Exfiltration",time:"2 HOURS",sub:"Attackers can exfiltrate sensitive data",color:"#8A7355",icon:"☁️"}
   ];
   h+='<div class="card" style="margin-bottom:16px">';
   h+='<div class="card-title"><div class="ct-left">If no action is taken</div></div>';
@@ -2672,7 +2703,7 @@ function renderContainment(d){
   // Recommended fastest actions
   h+='<div class="card" style="margin-bottom:16px">';
   h+='<div class="card-title"><div class="ct-left">⚡ Recommended Fastest Actions</div><span style="font-size:11px;color:var(--muted);font-weight:500">Prioritized by impact and speed</span></div>';
-  var impactLabels={1:{txt:"VERY HIGH",color:"#10B981"},2:{txt:"HIGH",color:"#FFE66D"},3:{txt:"MEDIUM",color:"#A29BFE"}};
+  var impactLabels={1:{txt:"VERY HIGH",color:"#6E8F72"},2:{txt:"HIGH",color:"#E0B872"},3:{txt:"MEDIUM",color:"#8A7355"}};
   var actionIcons=["🔒","🛡️","🔑","📋","🌐","⚠️"];
   d.recommended_actions.forEach(function(a,i){
     var imp=impactLabels[a.priority]||impactLabels[3];
@@ -2692,7 +2723,7 @@ function renderContainment(d){
   var gainH=Math.floor(gainMin/60), gainM=gainMin%60;
   h+='<div style="display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:14px;margin-bottom:24px">';
   h+='<div class="card" style="display:flex;align-items:center;gap:14px">';
-  h+='<div style="width:44px;height:44px;border-radius:50%;background:rgba(16,185,129,.15);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🛡️</div>';
+  h+='<div style="width:44px;height:44px;border-radius:50%;background:rgba(110,143,114,.15);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🛡️</div>';
   h+='<div><div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:3px">Take action now</div><div style="font-size:12px;color:var(--muted);line-height:1.5">By taking these actions, you can extend your time-to-impact and stop the attack before it causes critical damage.</div></div>';
   h+='</div>';
   h+='<div class="card">';
@@ -2724,7 +2755,7 @@ function drawContainmentGauge(minutes, color){
   ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=8;ctx.lineCap='round';ctx.stroke();
   var frac=Math.max(.06,Math.min(1,minutes/60));
   var g=ctx.createLinearGradient(0,0,180,0);
-  g.addColorStop(0,'#8B5CF6');g.addColorStop(.5,'#FFE66D');g.addColorStop(1,color);
+  g.addColorStop(0,'#8A7355');g.addColorStop(.5,'#E0B872');g.addColorStop(1,color);
   ctx.beginPath();ctx.arc(cx,cy,r,Math.PI*.75,Math.PI*.75+Math.PI*1.5*frac);
   ctx.strokeStyle=g;ctx.lineWidth=8;ctx.lineCap='round';ctx.shadowBlur=10;ctx.shadowColor=color;ctx.stroke();ctx.shadowBlur=0;
 }
@@ -2737,10 +2768,10 @@ function drawReductionChart(){
   ctx.clearRect(0,0,W,H);
   ctx.beginPath();ctx.moveTo(10,10);ctx.quadraticCurveTo(W*.5,H-6,W-10,H-14);
   var g=ctx.createLinearGradient(0,0,W,0);
-  g.addColorStop(0,'#FF6B6B');g.addColorStop(1,'#10B981');
+  g.addColorStop(0,'#D9A653');g.addColorStop(1,'#6E8F72');
   ctx.strokeStyle=g;ctx.lineWidth=2;ctx.stroke();
-  ctx.beginPath();ctx.arc(10,10,3,0,Math.PI*2);ctx.fillStyle='#FF6B6B';ctx.fill();
-  ctx.beginPath();ctx.arc(W-10,H-14,3,0,Math.PI*2);ctx.fillStyle='#10B981';ctx.fill();
+  ctx.beginPath();ctx.arc(10,10,3,0,Math.PI*2);ctx.fillStyle='#D9A653';ctx.fill();
+  ctx.beginPath();ctx.arc(W-10,H-14,3,0,Math.PI*2);ctx.fillStyle='#6E8F72';ctx.fill();
 }
 
 var containmentCountdownInterval=null;
@@ -2762,6 +2793,102 @@ function startContainmentCountdown(minutes){
   tick();
   containmentCountdownInterval=setInterval(tick,1000);
 }
+
+
+// ══ AUTHENTICATION ═══════════════════════════════════════════
+var authMode='login'; // 'login' or 'register'
+
+function toggleAuthMode(){
+  authMode = authMode==='login' ? 'register' : 'login';
+  document.getElementById('auth-register-fields').style.display = authMode==='register' ? 'block' : 'none';
+  document.getElementById('auth-subtitle').textContent = authMode==='login' ? 'Sign in to your account' : 'Create your analyst account';
+  document.getElementById('auth-submit-btn').textContent = authMode==='login' ? 'Sign In' : 'Create Account';
+  document.getElementById('auth-toggle-text').textContent = authMode==='login' ? "Don't have an account?" : 'Already have an account?';
+  document.getElementById('auth-toggle-link').textContent = authMode==='login' ? 'Create one' : 'Sign in';
+  document.getElementById('auth-error').style.display = 'none';
+}
+
+async function submitAuth(){
+  var username = document.getElementById('auth-username').value.trim();
+  var password = document.getElementById('auth-password').value;
+  var errEl = document.getElementById('auth-error');
+  errEl.style.display = 'none';
+
+  if(!username || !password){
+    errEl.textContent = 'Please fill in all fields';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  var endpoint = authMode==='login' ? '/auth/login' : '/auth/register';
+  var body = { username: username, password: password };
+  if(authMode==='register'){
+    var displayName = document.getElementById('auth-display-name').value.trim();
+    if(!displayName){
+      errEl.textContent = 'Please enter a display name';
+      errEl.style.display = 'block';
+      return;
+    }
+    body.display_name = displayName;
+  }
+
+  try{
+    var r = await fetch(endpoint, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      credentials:'include',
+      body: JSON.stringify(body)
+    });
+    var d = await r.json();
+    if(d.error){
+      errEl.textContent = d.error;
+      errEl.style.display = 'block';
+      return;
+    }
+    applyLoggedInUser(d);
+    document.getElementById('auth-overlay').style.display = 'none';
+  }catch(e){
+    errEl.textContent = 'Could not reach server. Make sure it is running.';
+    errEl.style.display = 'block';
+  }
+}
+
+function applyLoggedInUser(user){
+  var initials = user.display_name.trim().split(' ').map(function(w){return w[0];}).join('').toUpperCase().substring(0,2);
+  document.getElementById('user-avatar').textContent = initials || 'U';
+  document.getElementById('user-display-name').textContent = user.display_name + ' ▾';
+  document.getElementById('admin-menu-username').textContent = '@' + user.username;
+}
+
+async function checkSession(){
+  try{
+    var r = await fetch('/auth/me', {credentials:'include'});
+    if(r.ok){
+      var d = await r.json();
+      applyLoggedInUser(d);
+      document.getElementById('auth-overlay').style.display = 'none';
+    } else {
+      document.getElementById('auth-overlay').style.display = 'flex';
+    }
+  }catch(e){
+    document.getElementById('auth-overlay').style.display = 'flex';
+  }
+}
+
+async function signOut(){
+  try{
+    await fetch('/auth/logout', {method:'POST', credentials:'include'});
+  }catch(e){}
+  document.getElementById('auth-username').value='';
+  document.getElementById('auth-password').value='';
+  document.getElementById('auth-overlay').style.display = 'flex';
+}
+
+document.getElementById('auth-username') && document.addEventListener('keypress', function(e){
+  if(e.key==='Enter' && document.getElementById('auth-overlay').style.display!=='none'){
+    submitAuth();
+  }
+});
 
 </script>
 </body>
