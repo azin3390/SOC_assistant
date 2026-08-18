@@ -1,9 +1,16 @@
 .env
 __pycache__/
 *.pyc
-*.pkl
 *.pdf
 .DS_Store
-models/
 *.command
-!anomaly_model.pkl
+backend/users.db
+backend/log_analyzer_backup.py
+
+# Model files - explicitly allow the ones the app actually loads at runtime
+*.pkl
+!backend/anomaly_model.pkl
+!models/phishing_rf_model.pkl
+data/phishing_urls/*.zip
+phishing_shap_fidelity_stability_results.csv
+models/phishing_feature_names.csv

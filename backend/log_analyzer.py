@@ -1,13 +1,16 @@
 # =============================================================
 # LOG ANALYZER
 # Regex-based attack pattern matching + ML anomaly detection
-# (Isolation Forest) on per-IP behavioral features.
+# (Isolation Forest) on per-IP behavioral features, with SHAP-based
+# explanations for why each IP was flagged.
 # =============================================================
 
 import re
 import pickle
 import os
-from log_features import parse_log_text, build_ip_features, features_to_vector
+import numpy as np
+import shap
+from log_features import parse_log_text, build_ip_features, features_to_vector, FEATURE_ORDER
 
 # Known attack patterns to detect in logs
 ATTACK_PATTERNS = [
@@ -85,6 +88,21 @@ ATTACK_PATTERNS = [
 
 _MODEL_PATH = os.path.join(os.path.dirname(__file__), 'anomaly_model.pkl')
 _model = None
+_explainer = None
+
+# Human-readable labels for each raw feature name, used in SHAP explanations
+FEATURE_LABELS = {
+    'request_count': 'total request count',
+    'failed_auth_ratio': 'failed authentication rate',
+    'distinct_paths': 'number of distinct paths hit',
+    'distinct_status_codes': 'number of distinct status codes',
+    'avg_line_length': 'average request/response size',
+    'max_line_length': 'largest request/response size',
+    'request_rate_per_sec': 'request rate (per second)',
+    'off_hours_ratio': 'proportion of activity outside 06:00-22:00',
+    'error_status_ratio': 'error response rate',
+}
+
 
 def _load_model():
     global _model
@@ -92,6 +110,42 @@ def _load_model():
         with open(_MODEL_PATH, 'rb') as f:
             _model = pickle.load(f)
     return _model
+
+
+def _load_explainer():
+    global _explainer
+    if _explainer is None:
+        model = _load_model()
+        _explainer = shap.TreeExplainer(model)
+    return _explainer
+
+
+def explain_anomaly(vec, top_n=3):
+    """
+    Given a single feature vector (list, matching FEATURE_ORDER), compute
+    SHAP values and return the top contributing features as human-readable
+    strings, e.g. "failed authentication rate (strongly increased suspicion)".
+    Falls back to an empty list if SHAP fails for any reason — callers
+    should treat this as optional enrichment, not a hard dependency.
+    """
+    try:
+        explainer = _load_explainer()
+        arr = np.array(vec).reshape(1, -1)
+        shap_values = explainer.shap_values(arr)[0]
+
+        order = np.argsort(np.abs(shap_values))[::-1][:top_n]
+        explanations = []
+        for idx in order:
+            fname = FEATURE_ORDER[idx]
+            label = FEATURE_LABELS.get(fname, fname)
+            impact = shap_values[idx]
+            # Negative SHAP = pushed toward anomaly (shorter isolation path)
+            strength = "strongly" if abs(impact) > 0.15 else "moderately"
+            direction = "increased suspicion" if impact < 0 else "reduced suspicion"
+            explanations.append(f"{label} ({strength} {direction})")
+        return explanations
+    except Exception:
+        return []
 
 
 def extract_ips_from_logs(log_text):
@@ -111,6 +165,10 @@ def detect_anomalies(log_text):
     as behaviorally anomalous, independent of the regex signatures above —
     this catches things with no known pattern (e.g. a slow brute force
     under the pattern threshold, or unusual volume/timing).
+
+    Each flagged IP includes both the original heuristic "reasons" (kept
+    for backward compatibility with the frontend) and a new "shap_explanation"
+    field with model-derived, feature-attributed reasoning.
     """
     events = parse_log_text(log_text)
     ip_features = build_ip_features(events)
@@ -140,11 +198,14 @@ def detect_anomalies(log_text):
             if not reasons:
                 reasons.append("statistically unusual combination of request behavior")
 
+            shap_explanation = explain_anomaly(vec)
+
             anomalies.append({
                 "ip": ip,
                 "anomaly_score": round(float(score), 3),
                 "request_count": feats['request_count'],
                 "reasons": reasons,
+                "shap_explanation": shap_explanation,
             })
 
     anomalies.sort(key=lambda a: a['anomaly_score'])
@@ -234,3 +295,4 @@ if __name__ == '__main__':
     print("Anomalies:", len(result['anomalies']))
     for a in result['anomalies']:
         print(f" - {a['ip']} (score {a['anomaly_score']}): {a['reasons']}")
+        print(f"   SHAP: {a['shap_explanation']}")

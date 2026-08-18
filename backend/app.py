@@ -6,6 +6,7 @@ from log_analyzer import analyze_logs
 from report_generator import generate_report
 from timeline import generate_timeline_html
 from url_scanner import scan_url as ml_scan_url
+from phishing_demo import get_demo_samples
 from crime_scene import analyze_crime_scene
 from vendor_risk import analyze_vendor_document
 from containment import analyze_containment
@@ -130,6 +131,14 @@ def scan_url_route():
         "threat_intel": vt_result if 'error' not in vt_result else None,
         "rag_context": rag_context
     })
+
+@app.route('/phishing-demo', methods=['GET'])
+def phishing_demo_route():
+    try:
+        samples = get_demo_samples()
+        return jsonify({"samples": samples})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/crime-scene', methods=['POST'])
 def crime_scene_route():

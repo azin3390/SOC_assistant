@@ -792,6 +792,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
       <input class="field" id="url-input" placeholder="https://example.com" type="text"/>
       <button class="btn-main" onclick="scanURL()">🔍 Scan URL</button>
       <button class="btn-sub" onclick="toggleSamples()">📝 Try Sample URLs</button>
+      <button class="btn-sub" onclick="loadPhishingDemo()">🔬 SHAP Explainability Demo</button>
       <div id="url-samples" style="display:none;margin-top:4px">
         <div class="s-header">Quick Tests</div>
         <div class="qurl" onclick="setAndScan('https://www.google.com')">✅ google.com</div>
@@ -1546,7 +1547,12 @@ function renderLogs(d){
     d.anomalies.forEach(a=>{h+=`<div class="finding-card High">
       <div class="f-title">${a.ip} <span style="font-size:11px;font-weight:400;color:var(--muted)">(${a.request_count} requests · anomaly score ${a.anomaly_score})</span></div>
       <div class="f-detail">Flagged as behaviorally anomalous — no signature match, detected via learned traffic patterns.</div>
-      <div class="f-rec">💡 ${a.reasons.join(', ')}</div></div>`;});
+      <div class="f-rec">💡 ${a.reasons.join(', ')}</div>
+      ${a.shap_explanation && a.shap_explanation.length ? `<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);font-size:12px;color:var(--text)">
+        <span style="font-weight:700;color:var(--purple)">🔬 AI Explanation (SHAP):</span>
+        <span style="color:var(--muted)"> ${a.shap_explanation.join(' · ')}</span>
+      </div>` : ''}
+      </div>`;});
   }
   document.getElementById('log-results').innerHTML=h;
 }
@@ -1564,6 +1570,36 @@ async function downloadReport(){
 
 // ══ URL Scanner ═════════════════════════════════════════════
 function toggleSamples(){const e=document.getElementById('url-samples');e.style.display=e.style.display==='none'?'block':'none'}
+
+async function loadPhishingDemo(){
+  const p=document.getElementById('url-results');
+  p.innerHTML='<div class="empty"><div class="e-title">⏳ Loading SHAP explanations…</div></div>';
+  try{
+    const r=await fetch('/phishing-demo');
+    const d=await r.json();
+    renderPhishingDemo(d);
+  }catch(e){p.innerHTML='<div class="empty" style="color:var(--primary)">❌ Server not reachable</div>'}
+}
+
+function renderPhishingDemo(d){
+  const p=document.getElementById('url-results');
+  if(d.error){p.innerHTML=`<div class="empty" style="color:var(--primary)">❌ ${d.error}</div>`;return}
+  let h=`<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:6px">🔬 SHAP Explainability Demo <span style="font-size:10px;font-weight:700;color:var(--purple);background:rgba(184,92,126,.12);border:1px solid rgba(184,92,126,.3);border-radius:20px;padding:2px 8px;letter-spacing:.3px">RANDOM FOREST</span></div>
+  <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Sample cases from a labeled benchmark dataset — showing model predictions with real SHAP-based feature explanations, not live URL analysis.</div>`;
+  d.samples.forEach(s=>{
+    const isPhish=s.predicted_label==='Phishing';
+    const cls=isPhish?'Critical':'Low';
+    h+=`<div class="finding-card ${cls}">
+      <div class="f-title">${s.sample_label} <span style="font-size:11px;font-weight:400;color:var(--muted)">(${s.confidence}% confidence · ${s.correct?'✅ correct':'❌ misclassified'})</span></div>
+      <div class="f-detail">Model predicted: <strong>${s.predicted_label}</strong></div>
+      <div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);font-size:12px;color:var(--text)">
+        <span style="font-weight:700;color:var(--purple)">🔬 AI Explanation (SHAP):</span>
+        <span style="color:var(--muted)"> ${s.shap_explanation.join(' · ')}</span>
+      </div>
+    </div>`;
+  });
+  p.innerHTML=h;
+}
 function setAndScan(u){document.getElementById('url-input').value=u;scanURL()}
 
 async function scanURL(){
