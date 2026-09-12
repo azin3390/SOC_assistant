@@ -87,6 +87,7 @@ def _lightweight_explanation(row, feature_names, model, top_n=3):
     SHAP-based per-instance explanations are available locally with
     ENABLE_SHAP=true.
     """
+    import numpy as np
     importances = model.feature_importances_
     top_idx = np.argsort(importances)[::-1][:top_n * 2]
     explanations = []
