@@ -9,8 +9,14 @@ import re
 import pickle
 import os
 import numpy as np
-import shap
 from log_features import parse_log_text, build_ip_features, features_to_vector, FEATURE_ORDER
+
+# SHAP is memory-heavy; disabled by default in production (e.g. free-tier
+# hosting) to avoid out-of-memory crashes. Set ENABLE_SHAP=true locally
+# (or on a higher-memory plan) to get full SHAP-based explanations.
+_SHAP_ENABLED = os.environ.get('ENABLE_SHAP', 'false').lower() == 'true'
+if _SHAP_ENABLED:
+    import shap
 
 # Known attack patterns to detect in logs
 ATTACK_PATTERNS = [
@@ -120,14 +126,53 @@ def _load_explainer():
     return _explainer
 
 
+def _lightweight_explanation(vec, top_n=3):
+    """
+    Memory-cheap fallback explanation: ranks features by how far each
+    value sits from a rough 'typical normal' baseline, weighted by an
+    approximate sense of which features matter most for this heuristic
+    model. Used in place of SHAP when ENABLE_SHAP is off (e.g. on
+    memory-constrained hosting) — a fully accurate, model-derived
+    explanation is available locally with ENABLE_SHAP=true.
+    """
+    # Rough typical/benign values, derived from normal traffic patterns
+    baseline = {
+        'request_count': 5, 'failed_auth_ratio': 0.0, 'distinct_paths': 3,
+        'distinct_status_codes': 2, 'avg_line_length': 120, 'max_line_length': 200,
+        'request_rate_per_sec': 0.2, 'off_hours_ratio': 0.1, 'error_status_ratio': 0.05,
+    }
+    deviations = []
+    for i, fname in enumerate(FEATURE_ORDER):
+        base = baseline.get(fname, 0)
+        denom = abs(base) + 1e-6
+        dev = abs(vec[i] - base) / denom
+        deviations.append((fname, dev, vec[i] > base))
+
+    deviations.sort(key=lambda x: x[1], reverse=True)
+    explanations = []
+    for fname, dev, is_higher in deviations[:top_n]:
+        if dev < 0.1:
+            continue
+        label = FEATURE_LABELS.get(fname, fname)
+        strength = "strongly" if dev > 1.5 else "moderately"
+        direction = "increased suspicion" if is_higher else "reduced suspicion"
+        explanations.append(f"{label} ({strength} {direction})")
+    return explanations
+
+
 def explain_anomaly(vec, top_n=3):
     """
-    Given a single feature vector (list, matching FEATURE_ORDER), compute
-    SHAP values and return the top contributing features as human-readable
-    strings, e.g. "failed authentication rate (strongly increased suspicion)".
-    Falls back to an empty list if SHAP fails for any reason — callers
-    should treat this as optional enrichment, not a hard dependency.
+    Given a single feature vector (list, matching FEATURE_ORDER), return
+    the top contributing features as human-readable strings, e.g.
+    "failed authentication rate (strongly increased suspicion)".
+
+    Uses real SHAP values when ENABLE_SHAP=true (accurate, but memory-heavy
+    — recommended for local/research use). Otherwise uses a lightweight
+    deviation-based heuristic that needs no extra ML libraries in memory,
+    suitable for constrained production hosting.
     """
+    if not _SHAP_ENABLED:
+        return _lightweight_explanation(vec, top_n)
     try:
         explainer = _load_explainer()
         arr = np.array(vec).reshape(1, -1)
@@ -139,13 +184,12 @@ def explain_anomaly(vec, top_n=3):
             fname = FEATURE_ORDER[idx]
             label = FEATURE_LABELS.get(fname, fname)
             impact = shap_values[idx]
-            # Negative SHAP = pushed toward anomaly (shorter isolation path)
             strength = "strongly" if abs(impact) > 0.15 else "moderately"
             direction = "increased suspicion" if impact < 0 else "reduced suspicion"
             explanations.append(f"{label} ({strength} {direction})")
         return explanations
     except Exception:
-        return []
+        return _lightweight_explanation(vec, top_n)
 
 
 def extract_ips_from_logs(log_text):

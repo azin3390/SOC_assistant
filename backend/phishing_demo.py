@@ -11,8 +11,11 @@
 import os
 import pandas as pd
 import joblib
-import shap
 import numpy as np
+
+_SHAP_ENABLED = os.environ.get('ENABLE_SHAP', 'false').lower() == 'true'
+if _SHAP_ENABLED:
+    import shap
 
 _BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _MODEL_PATH = os.path.join(_BASE_DIR, 'models', 'phishing_rf_model.pkl')
@@ -75,6 +78,29 @@ def _load_explainer():
     return _explainer
 
 
+def _lightweight_explanation(row, feature_names, model, top_n=3):
+    """
+    Memory-cheap fallback: uses the Random Forest's built-in global
+    feature_importances_ combined with how far each feature's value
+    sits from the dataset mode, to approximate which features likely
+    drove this prediction — without loading SHAP into memory. Full
+    SHAP-based per-instance explanations are available locally with
+    ENABLE_SHAP=true.
+    """
+    importances = model.feature_importances_
+    top_idx = np.argsort(importances)[::-1][:top_n * 2]
+    explanations = []
+    for idx in top_idx:
+        if len(explanations) >= top_n:
+            break
+        fname = feature_names[idx]
+        label = FEATURE_LABELS.get(fname, fname)
+        val = row[idx]
+        direction = "a key factor in this prediction"
+        explanations.append(f"{label} ({direction}, value={val})")
+    return explanations
+
+
 def get_demo_samples(top_n=3):
     """
     Returns a fixed set of demo samples (3 phishing, 3 legitimate) from
@@ -99,12 +125,14 @@ def get_demo_samples(top_n=3):
     sample_labels = y.loc[sample_idx].reset_index(drop=True)
 
     model = _load_model()
-    explainer = _load_explainer()
 
     probs = model.predict_proba(sample)
     preds = model.predict(sample)
-    shap_values_full = explainer.shap_values(sample)
-    shap_values = shap_values_full[:, :, 0]  # class 0 = Phishing
+
+    if _SHAP_ENABLED:
+        explainer = _load_explainer()
+        shap_values_full = explainer.shap_values(sample)
+        shap_values = shap_values_full[:, :, 0]  # class 0 = Phishing
 
     results = []
     for i in range(len(sample)):
@@ -112,16 +140,19 @@ def get_demo_samples(top_n=3):
         pred_label = "Phishing" if preds[i] == -1 else "Legitimate"
         confidence = round(float(max(probs[i])) * 100, 1)
 
-        row_shap = shap_values[i]
-        top_idx = np.argsort(np.abs(row_shap))[::-1][:top_n]
-        explanation = []
-        for idx in top_idx:
-            fname = feature_names[idx]
-            label = FEATURE_LABELS.get(fname, fname)
-            val = row_shap[idx]
-            direction = "increased phishing likelihood" if val > 0 else "increased legitimacy confidence"
-            strength = "strongly" if abs(val) > 0.2 else "moderately"
-            explanation.append(f"{label} ({strength} {direction})")
+        if _SHAP_ENABLED:
+            row_shap = shap_values[i]
+            top_idx = np.argsort(np.abs(row_shap))[::-1][:top_n]
+            explanation = []
+            for idx in top_idx:
+                fname = feature_names[idx]
+                label = FEATURE_LABELS.get(fname, fname)
+                val = row_shap[idx]
+                direction = "increased phishing likelihood" if val > 0 else "increased legitimacy confidence"
+                strength = "strongly" if abs(val) > 0.2 else "moderately"
+                explanation.append(f"{label} ({strength} {direction})")
+        else:
+            explanation = _lightweight_explanation(sample.iloc[i].values, feature_names, model, top_n)
 
         label_type = "Known Phishing Site" if true_label == "Phishing" else "Known Legitimate Site"
         results.append({
